@@ -96,3 +96,99 @@ id = "ymZrEUr9YmBqYcg7z4PoE"
 uri = "file://artifacts/mockup-sandbox/public/images/thali.png"
 type = "image"
 title = "South Indian Meals Thali"
+
+[[generated]]
+id = "r_JGqGWJPLDzbPM4m8fNy"
+uri = "file://artifacts/mockup-sandbox/public/images/dosa-ji-hero.png"
+type = "image"
+title = "Fast food hero background"
+
+[[generated]]
+id = "XiMH1AxWhZB5M6oXCIR8k"
+uri = "file://artifacts/mockup-sandbox/public/images/pizza.png"
+type = "image"
+title = "Farmhouse Pizza"
+
+[[generated]]
+id = "U2nab0Y1vIYjAnXOaO3LL"
+uri = "file://artifacts/mockup-sandbox/public/images/burger.png"
+type = "image"
+title = "Juicy Double Burger"
+
+[[generated]]
+id = "mpdrDnC4s0kIDOs4lwWqo"
+uri = "file://artifacts/mockup-sandbox/public/images/fries.png"
+type = "image"
+title = "Loaded Fries"
+
+[[generated]]
+id = "5ckCigpe7-BKUoVb4SIV7"
+uri = "file://artifacts/mockup-sandbox/public/images/wrap.png"
+type = "image"
+title = "Spicy Wrap"
+
+[[generated]]
+id = "sR9siL7Ev84SnLhoMRPOj"
+uri = "file://artifacts/mockup-sandbox/public/images/shake.png"
+type = "image"
+title = "Chocolate Shake"
+
+[[generated]]
+id = "6m_RTUzpHYZ_TR-_AOS47"
+uri = "file://artifacts/mockup-sandbox/public/images/combo.png"
+type = "image"
+title = "Fast Food Combo"
+
+[[generated]]
+id = "ZYxjuWGkmMhuRZkhYJ4tc"
+uri = "file://artifacts/mockup-sandbox/public/images/pizza-margherita.png"
+type = "image"
+title = "Margherita Pizza"
+
+[[generated]]
+id = "pCYd59UwIr4rsZslUmhqT"
+uri = "file://artifacts/mockup-sandbox/public/images/burger-chicken.png"
+type = "image"
+title = "Spicy Chicken Burger"
+
+[[generated]]
+id = "Xqw_rq9DoheWCz6DBwnUt"
+uri = "file://artifacts/mockup-sandbox/public/images/fries-loaded.png"
+type = "image"
+title = "Loaded Fries"
+
+[[generated]]
+id = "sCFjql3Rh4pQghvjCrGAm"
+uri = "file://artifacts/mockup-sandbox/public/images/wrap-paneer.png"
+type = "image"
+title = "Paneer Tikka Wrap"
+
+[[generated]]
+id = "1_1GyD6l18UVLuaDlQetv"
+uri = "file://artifacts/mockup-sandbox/public/images/shake-chocolate.png"
+type = "image"
+title = "Chocolate Shake"
+
+[[generated]]
+id = "UDP6ZJZtj0lBM1hfxknZk"
+uri = "file://artifacts/mockup-sandbox/public/images/pizza-farmhouse.png"
+type = "image"
+title = "Farm House Pizza"
+
+[[generated]]
+id = "AYRKNxuECsOkEUE5EKyVz"
+uri = "file://artifacts/mockup-sandbox/public/images/burger-veg.png"
+type = "image"
+title = "Crispy Veg Burger"
+
+[[generated]]
+id = "NzEYin2itMYr21npNoxbu"
+uri = "file://artifacts/mockup-sandbox/public/images/shake-mango.png"
+type = "image"
+title = "Mango Shake"
+
+[[generated]]
+id = "H4FOirGuqZVIza2fex2DC"
+uri = "file://artifacts/mockup-sandbox/public/images/fries-cheesy.png"
+type = "image"
+title = "Cheesy Fries"

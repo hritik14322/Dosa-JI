@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { Navbar } from "@/components/Navbar";
 import NotFound from "@/pages/not-found";
+import { Link } from "wouter";
 
 // Pages
 import Home from "@/pages/Home";
@@ -18,6 +19,10 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
+import TermsAndConditions from "@/pages/TermsAndConditions";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import ShippingPolicy from "@/pages/ShippingPolicy";
+import CancellationRefunds from "@/pages/CancellationRefunds";
 
 // Shopkeeper & Admin full-page layouts
 import ShopkeeperLayout from "@/layouts/ShopkeeperLayout";
@@ -31,6 +36,46 @@ const ProtectedRoute = ({ component: Component, allowedRoles }: { component: any
   if (allowedRoles && user && !allowedRoles.includes(user.role)) return <Redirect to="/" />;
   return <Component />;
 };
+
+function Footer() {
+  return (
+    <footer className="bg-muted border-t mt-auto">
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+          <div>
+            <p className="font-serif font-bold text-lg mb-3 text-foreground">Dosa Ji</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Freshly made dosas, pizzas, burgers &amp; rolls — delivered hot to your door.
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold text-sm mb-3 text-foreground uppercase tracking-wider">Quick Links</p>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/menu" className="text-muted-foreground hover:text-foreground transition-colors">Menu</Link></li>
+              <li><Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="font-semibold text-sm mb-3 text-foreground uppercase tracking-wider">Legal</p>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">Terms &amp; Conditions</Link></li>
+              <li><Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/shipping" className="text-muted-foreground hover:text-foreground transition-colors">Shipping Policy</Link></li>
+              <li><Link href="/cancellation" className="text-muted-foreground hover:text-foreground transition-colors">Cancellation &amp; Refunds</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t pt-6 text-center text-xs text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Dosa Ji Restaurant. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
 
 function CustomerLayout() {
   return (
@@ -46,6 +91,10 @@ function CustomerLayout() {
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/order-confirmation/:id" component={OrderConfirmation} />
+          <Route path="/terms" component={TermsAndConditions} />
+          <Route path="/privacy" component={PrivacyPolicy} />
+          <Route path="/shipping" component={ShippingPolicy} />
+          <Route path="/cancellation" component={CancellationRefunds} />
 
           <Route path="/orders"><ProtectedRoute component={Orders} allowedRoles={["customer"]} /></Route>
           <Route path="/profile"><ProtectedRoute component={Profile} /></Route>
@@ -54,12 +103,7 @@ function CustomerLayout() {
         </Switch>
       </main>
 
-      <footer className="bg-muted py-8 text-center text-sm text-muted-foreground border-t mt-auto">
-        <div className="container mx-auto px-4">
-          <p className="font-serif font-bold text-lg mb-2 text-foreground">Dosa Ji</p>
-          <p>&copy; {new Date().getFullYear()} Dosa Ji Restaurant. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

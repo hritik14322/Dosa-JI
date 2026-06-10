@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
         <section>
           <h2 className="text-xl font-bold mb-2">7. Your Rights</h2>
           <p className="text-muted-foreground leading-relaxed">
-            You have the right to access, correct, or delete your personal information. To exercise these rights, please contact us at <a href="mailto:support@dosaji.com" className="text-amber-600 hover:underline">support@dosaji.com</a>. We will respond within 30 days.
+            You have the right to access, correct, or delete your personal information. To exercise these rights, please contact us at <a href="mailto:shreejanandan1@gmail.com" className="text-amber-600 hover:underline">shreejanandan1@gmail.com</a>. We will respond within 30 days.
           </p>
         </section>
 
@@ -91,7 +91,7 @@ export default function PrivacyPolicy() {
         <section>
           <h2 className="text-xl font-bold mb-2">11. Contact Us</h2>
           <p className="text-muted-foreground leading-relaxed">
-            For privacy-related queries, contact us at <a href="mailto:support@dosaji.com" className="text-amber-600 hover:underline">support@dosaji.com</a>.
+            For privacy-related queries, contact us at <a href="mailto:shreejanandan1@gmail.com" className="text-amber-600 hover:underline">shreejanandan1@gmail.com</a>.
           </p>
         </section>
 

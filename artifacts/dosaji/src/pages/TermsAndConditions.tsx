@@ -9,7 +9,7 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-xl font-bold mb-2">1. Introduction</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Welcome to Dosa Ji ("we", "our", "us"). By accessing or using our website at dosaji.com and placing orders through our platform, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.
+            Welcome to Dosa Ji ("we", "our", "us"). By accessing or using our website at dosaji.in and placing orders through our platform, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.
           </p>
         </section>
 
@@ -83,7 +83,7 @@ export default function TermsAndConditions() {
         <section>
           <h2 className="text-xl font-bold mb-2">11. Contact</h2>
           <p className="text-muted-foreground leading-relaxed">
-            For any questions about these Terms and Conditions, please contact us at <a href="mailto:support@dosaji.com" className="text-amber-600 hover:underline">support@dosaji.com</a>.
+            For any questions about these Terms and Conditions, please contact us at <a href="mailto:shreejanandan1@gmail.com" className="text-amber-600 hover:underline">shreejanandan1@gmail.com</a>.
           </p>
         </section>
 

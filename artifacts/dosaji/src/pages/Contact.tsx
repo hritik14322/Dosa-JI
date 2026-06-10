@@ -63,7 +63,7 @@ export default function Contact() {
               </div>
               <div>
                 <h4 className="font-bold mb-1">Call Us</h4>
-                <p className="text-muted-foreground">+91 98765 43210</p>
+                <p className="text-muted-foreground">+91 95071 07204</p>
               </div>
             </div>
             
@@ -73,7 +73,7 @@ export default function Contact() {
               </div>
               <div>
                 <h4 className="font-bold mb-1">Email Us</h4>
-                <p className="text-muted-foreground">hello@dosaji.com</p>
+                <p className="text-muted-foreground">shreejanandan1@gmail.com</p>
               </div>
             </div>
 

@@ -10,7 +10,7 @@ export default function AdminSettings() {
     restaurantName: "Dosa Ji",
     tagline: "Delicious Fast Food",
     address: "123 Food Street, Foodie City",
-    phone: "+91 98765 43210",
+    phone: "+91 95071 07204",
     deliveryCharge: "30",
     gstPercent: "5",
     freeDeliveryAbove: "299",

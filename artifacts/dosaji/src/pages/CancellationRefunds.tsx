@@ -78,8 +78,8 @@ export default function CancellationRefunds() {
         <section>
           <h2 className="text-xl font-bold mb-2">How to Request a Cancellation or Refund</h2>
           <ol className="list-decimal list-inside space-y-1 text-muted-foreground leading-relaxed">
-            <li>Email us at <a href="mailto:support@dosaji.com" className="text-amber-600 hover:underline">support@dosaji.com</a> with your order number and reason.</li>
-            <li>Or call us at <strong>+91-XXXXXXXXXX</strong> during business hours (9 AM – 11 PM).</li>
+            <li>Email us at <a href="mailto:shreejanandan1@gmail.com" className="text-amber-600 hover:underline">shreejanandan1@gmail.com</a> with your order number and reason.</li>
+            <li>Or call us at <strong>+91 95071 07204</strong> during business hours (9 AM – 11 PM).</li>
             <li>Our team will review your request and respond within 24 hours.</li>
           </ol>
         </section>

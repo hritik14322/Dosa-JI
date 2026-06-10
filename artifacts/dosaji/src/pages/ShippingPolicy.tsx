@@ -71,7 +71,7 @@ export default function ShippingPolicy() {
         <section>
           <h2 className="text-xl font-bold mb-2">7. Contact for Delivery Issues</h2>
           <p className="text-muted-foreground leading-relaxed">
-            If you have any concerns about your delivery, please contact us immediately at <a href="mailto:support@dosaji.com" className="text-amber-600 hover:underline">support@dosaji.com</a> or call us at +91-XXXXXXXXXX.
+            If you have any concerns about your delivery, please contact us immediately at <a href="mailto:shreejanandan1@gmail.com" className="text-amber-600 hover:underline">shreejanandan1@gmail.com</a> or call us at +91 95071 07204.
           </p>
         </section>
 

@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, Switch, Route, Redirect } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, UtensilsCrossed, ClipboardList, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, ClipboardList, LogOut, Menu, X, Bell } from "lucide-react";
 import logoSrc from "@assets/dosa_ji_logo_1781074968971.png";
 import ShopkeeperDashboard from "@/pages/shopkeeper/Dashboard";
 import ShopkeeperMenu from "@/pages/shopkeeper/Menu";
 import ShopkeeperOrders from "@/pages/shopkeeper/Orders";
+import { useListAllOrders, getListAllOrdersQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/shopkeeper" },
@@ -13,7 +16,7 @@ const navItems = [
   { icon: ClipboardList, label: "Order Management", path: "/shopkeeper/orders" },
 ];
 
-function Sidebar({ onClose }: { onClose?: () => void }) {
+function Sidebar({ onClose, newOrderCount }: { onClose?: () => void; newOrderCount: number }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
 
@@ -72,6 +75,11 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
             {label}
+            {path === "/shopkeeper/orders" && newOrderCount > 0 && (
+              <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                {newOrderCount}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
@@ -90,9 +98,54 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
   );
 }
 
+function useNewOrderNotifications() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const lastKnownCountRef = useRef<number | null>(null);
+  const isFirstFetchRef = useRef(true);
+
+  const { data: orders } = useListAllOrders({ status: "Placed" });
+
+  // Poll every 30 s by invalidating the query
+  useEffect(() => {
+    const id = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: getListAllOrdersQueryKey({ status: "Placed" }) });
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [queryClient]);
+
+  // Notify on new orders after the first fetch
+  useEffect(() => {
+    if (orders === undefined) return;
+
+    const currentCount = orders.length;
+
+    if (isFirstFetchRef.current) {
+      lastKnownCountRef.current = currentCount;
+      isFirstFetchRef.current = false;
+      return;
+    }
+
+    const prev = lastKnownCountRef.current ?? 0;
+    if (currentCount > prev) {
+      const diff = currentCount - prev;
+      toast({
+        title: `🔔 New Order${diff > 1 ? "s" : ""} Received!`,
+        description: `You have ${diff} new order${diff > 1 ? "s" : ""} waiting to be prepared.`,
+        duration: 8000,
+      });
+    }
+
+    lastKnownCountRef.current = currentCount;
+  }, [orders, toast]);
+
+  return lastKnownCountRef.current ?? 0;
+}
+
 export default function ShopkeeperLayout() {
   const { isAuthenticated, user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const newOrderCount = useNewOrderNotifications();
 
   if (!isAuthenticated) return <Redirect to="/login" />;
   if (user?.role !== "shopkeeper" && user?.role !== "admin") return <Redirect to="/" />;
@@ -101,7 +154,7 @@ export default function ShopkeeperLayout() {
     <div className="flex min-h-screen bg-muted/30">
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex flex-col fixed inset-y-0 left-0 z-40">
-        <Sidebar />
+        <Sidebar newOrderCount={newOrderCount} />
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -109,7 +162,7 @@ export default function ShopkeeperLayout() {
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileOpen(false)} />
           <div className="relative z-10 flex flex-col h-full">
-            <Sidebar onClose={() => setMobileOpen(false)} />
+            <Sidebar onClose={() => setMobileOpen(false)} newOrderCount={newOrderCount} />
           </div>
         </div>
       )}
@@ -123,6 +176,14 @@ export default function ShopkeeperLayout() {
           </button>
           <img src={logoSrc} alt="Dosa Ji" className="h-7 w-7 object-contain" />
           <span className="font-serif font-bold text-lg text-amber-400">Dosa Ji</span>
+          {newOrderCount > 0 && (
+            <Link href="/shopkeeper/orders" className="ml-auto relative text-white/80 hover:text-amber-400">
+              <Bell className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                {newOrderCount}
+              </span>
+            </Link>
+          )}
         </div>
 
         <main className="flex-1">

@@ -4,6 +4,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 type VegFilter = "all" | "veg" | "nonveg";
 
@@ -34,6 +35,7 @@ export default function Menu() {
   const { addItem } = useCart();
   const { user } = useAuth();
   const isStaff = user?.role === "shopkeeper" || user?.role === "admin";
+  const { toast } = useToast();
 
   const dynamicCategories = allItems
     ? Array.from(new Set(allItems.map((i) => i.category))).sort()
@@ -45,6 +47,11 @@ export default function Menu() {
       setSizePickerItem({ id: item.id, name: item.name, price: item.price, imageUrl: item.imageUrl, sizes });
     } else {
       addItem({ menuItemId: item.id, name: item.name, price: item.price, imageUrl: item.imageUrl });
+      toast({
+        title: "Added to cart 🛒",
+        description: `${item.name} — ₹${item.price}`,
+        duration: 2000,
+      });
     }
   };
 
@@ -57,6 +64,11 @@ export default function Menu() {
       price: effectivePrice,
       imageUrl: sizePickerItem.imageUrl,
       selectedSize: size.name,
+    });
+    toast({
+      title: "Added to cart 🛒",
+      description: `${sizePickerItem.name} (${size.name}) — ₹${effectivePrice}`,
+      duration: 2000,
     });
     setSizePickerItem(null);
   };

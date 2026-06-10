@@ -59,7 +59,7 @@ export default function Home() {
                 Order Now
               </Link>
               <Link
-                href="/about"
+                href="/menu"
                 className="px-10 py-3.5 rounded-full border-2 border-white text-white font-semibold text-base hover:bg-white/10 transition-colors"
               >
                 Explore Menu

@@ -1,0 +1,200 @@
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useCart } from "@/contexts/CartContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useApplyCoupon, useCreateOrder, useCreatePaymentOrder } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+
+export default function Cart() {
+  const { items, removeItem, updateQty, clearCart, subtotal, total, couponCode, couponDiscount, setCoupon } = useCart();
+  const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  const applyCouponMutation = useApplyCoupon();
+  const createPaymentOrderMutation = useCreatePaymentOrder();
+  const createOrderMutation = useCreateOrder();
+
+  const [couponInput, setCouponInput] = useState(couponCode || "");
+  const [address, setAddress] = useState({
+    name: "", phone: "", addressLine1: "", addressLine2: "", city: "", pincode: ""
+  });
+
+  const handleApplyCoupon = () => {
+    if (!couponInput) return;
+    applyCouponMutation.mutate({ data: { code: couponInput, orderTotal: subtotal } }, {
+      onSuccess: (res) => {
+        setCoupon(couponInput, res.discount);
+        toast({ title: "Coupon applied", description: res.message });
+      },
+      onError: (err: any) => {
+        toast({ title: "Invalid coupon", description: err.error || "Failed to apply coupon", variant: "destructive" });
+        setCoupon(null, 0);
+      }
+    });
+  };
+
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      toast({ title: "Login required", description: "Please login to checkout" });
+      setLocation("/login");
+      return;
+    }
+    if (items.length === 0) return;
+    if (!address.name || !address.phone || !address.addressLine1 || !address.city || !address.pincode) {
+      toast({ title: "Missing details", description: "Please fill all required address fields", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const paymentOrder = await createPaymentOrderMutation.mutateAsync({ data: { amount: total } });
+      const fakeRzpOrderId = paymentOrder.id || `rzp_mock_${Date.now()}`;
+      const fakePaymentId = `pay_mock_${Date.now()}`;
+
+      createOrderMutation.mutate({
+        data: {
+          items: items.map(i => ({ menuItemId: i.menuItemId, name: i.name, price: i.price, quantity: i.quantity, imageUrl: i.imageUrl })),
+          deliveryAddress: address,
+          couponCode: couponCode,
+          razorpayOrderId: fakeRzpOrderId,
+          razorpayPaymentId: fakePaymentId
+        }
+      }, {
+        onSuccess: (order) => {
+          clearCart();
+          setLocation(`/order-confirmation/${order.id}`);
+        },
+        onError: (err: any) => {
+          toast({ title: "Checkout failed", description: err.error || "An error occurred", variant: "destructive" });
+        }
+      });
+    } catch (err: any) {
+      toast({ title: "Payment failed", description: err.error || "Failed to initiate payment", variant: "destructive" });
+    }
+  };
+
+  if (items.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center">
+        <h1 className="text-3xl font-bold mb-4">Your Cart is Empty</h1>
+        <p className="text-muted-foreground mb-8">Looks like you haven't added anything to your cart yet.</p>
+        <Button onClick={() => setLocation("/menu")}>Browse Menu</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold font-serif mb-8">Checkout</h1>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-7 space-y-6">
+          <div className="bg-card rounded-xl p-6 shadow-sm border">
+            <h2 className="text-xl font-bold mb-4">Cart Items</h2>
+            <div className="space-y-4">
+              {items.map((item) => (
+                <div key={item.menuItemId} className="flex gap-4 border-b pb-4 last:border-0 last:pb-0">
+                  <div className="w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
+                    {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />}
+                  </div>
+                  <div className="flex-grow flex flex-col justify-between">
+                    <div className="flex justify-between">
+                      <h3 className="font-semibold">{item.name}</h3>
+                      <span className="font-bold">₹{item.price * item.quantity}</span>
+                    </div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center border rounded-md">
+                        <button onClick={() => updateQty(item.menuItemId, item.quantity - 1)} className="px-2 py-1 hover:bg-muted">-</button>
+                        <span className="px-2 text-sm">{item.quantity}</span>
+                        <button onClick={() => updateQty(item.menuItemId, item.quantity + 1)} className="px-2 py-1 hover:bg-muted">+</button>
+                      </div>
+                      <button onClick={() => removeItem(item.menuItemId)} className="text-sm text-destructive hover:underline">Remove</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-card rounded-xl p-6 shadow-sm border">
+            <h2 className="text-xl font-bold mb-4">Delivery Address</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name *</Label>
+                <Input id="name" value={address.name} onChange={e => setAddress({...address, name: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input id="phone" value={address.phone} onChange={e => setAddress({...address, phone: e.target.value})} required />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="addressLine1">Address Line 1 *</Label>
+                <Input id="addressLine1" value={address.addressLine1} onChange={e => setAddress({...address, addressLine1: e.target.value})} required />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
+                <Input id="addressLine2" value={address.addressLine2} onChange={e => setAddress({...address, addressLine2: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="city">City *</Label>
+                <Input id="city" value={address.city} onChange={e => setAddress({...address, city: e.target.value})} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pincode">Pincode *</Label>
+                <Input id="pincode" value={address.pincode} onChange={e => setAddress({...address, pincode: e.target.value})} required />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-card rounded-xl p-6 shadow-sm border">
+            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+            
+            <div className="flex gap-2 mb-6">
+              <Input placeholder="Coupon Code" value={couponInput} onChange={e => setCouponInput(e.target.value)} />
+              <Button variant="outline" onClick={handleApplyCoupon} disabled={applyCouponMutation.isPending}>Apply</Button>
+            </div>
+
+            <div className="space-y-2 text-sm mb-4 pb-4 border-b">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>₹{subtotal}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Delivery Charge</span>
+                <span>₹40</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">GST (5%)</span>
+                <span>₹{(subtotal * 0.05).toFixed(2)}</span>
+              </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span>Discount ({couponCode})</span>
+                  <span>-₹{couponDiscount}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-between text-lg font-bold mb-6">
+              <span>Total</span>
+              <span>₹{total.toFixed(2)}</span>
+            </div>
+
+            <Button 
+              className="w-full h-12 text-lg" 
+              onClick={handleCheckout}
+              disabled={createPaymentOrderMutation.isPending || createOrderMutation.isPending}
+            >
+              {(createPaymentOrderMutation.isPending || createOrderMutation.isPending) ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

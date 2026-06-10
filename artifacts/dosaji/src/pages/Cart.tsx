@@ -4,10 +4,13 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useApplyCoupon, useCreateOrder, useCreatePaymentOrder } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { X } from "lucide-react";
+import { X, CreditCard, Truck, Smartphone, CheckCircle2, Loader2 } from "lucide-react";
+
+type PaymentStep = "select" | "processing" | "done";
 
 export default function Cart() {
   const { items, removeItem, updateQty, clearCart, subtotal, total, couponCode, couponDiscount, setCoupon } = useCart();
@@ -23,6 +26,11 @@ export default function Cart() {
   const [address, setAddress] = useState({
     name: "", phone: "", addressLine1: "", addressLine2: "", city: "", pincode: ""
   });
+
+  // Payment dialog state
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentStep, setPaymentStep] = useState<PaymentStep>("select");
+  const [selectedMethod, setSelectedMethod] = useState<"online" | "cod" | null>(null);
 
   const handleApplyCoupon = () => {
     if (!couponInput.trim()) return;
@@ -67,15 +75,17 @@ export default function Cart() {
     }, {
       onSuccess: (order) => {
         clearCart();
+        setPaymentDialogOpen(false);
         setLocation(`/order-confirmation/${order.id}`);
       },
       onError: (err: any) => {
+        setPaymentStep("select");
         toast({ title: "Checkout failed", description: err.error || "An error occurred", variant: "destructive" });
       }
     });
   };
 
-  const handleCheckout = async () => {
+  const handleOpenPaymentDialog = () => {
     if (!isAuthenticated) {
       toast({ title: "Login required", description: "Please login to checkout" });
       setLocation("/login");
@@ -86,13 +96,20 @@ export default function Cart() {
       toast({ title: "Missing details", description: "Please fill all required address fields", variant: "destructive" });
       return;
     }
+    setPaymentStep("select");
+    setSelectedMethod(null);
+    setPaymentDialogOpen(true);
+  };
+
+  const handlePayOnline = async () => {
+    setSelectedMethod("online");
+    setPaymentStep("processing");
 
     try {
       const paymentOrder = await createPaymentOrderMutation.mutateAsync({ data: { amount: total } });
 
-      // ── Real Razorpay checkout ──────────────────────────────────────────────
+      // ── Real Razorpay checkout ─────────────────────────────────────────────
       if (paymentOrder.keyId) {
-        // Dynamically load the Razorpay checkout script
         await new Promise<void>((resolve, reject) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if ((window as any).Razorpay) { resolve(); return; }
@@ -117,9 +134,16 @@ export default function Cart() {
           handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
             placeOrder(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
           },
+          modal: {
+            ondismiss: () => {
+              setPaymentStep("select");
+              setSelectedMethod(null);
+            },
+          },
         });
 
         rzp.on("payment.failed", (response: any) => {
+          setPaymentStep("select");
           toast({
             title: "Payment failed",
             description: response?.error?.description || "Your payment could not be processed. Please try again.",
@@ -128,14 +152,26 @@ export default function Cart() {
         });
 
         rzp.open();
-        return; // Order is placed inside the handler callback above
+        // Keep the dialog open — Razorpay opens over it; on handler success placeOrder closes dialog
+        setPaymentStep("select");
+        return;
       }
 
-      // ── Mock / dev mode (no Razorpay keys set) ────────────────────────────
+      // ── Demo / dev mode — simulate processing then place order ────────────
+      await new Promise(r => setTimeout(r, 1800));
+      setPaymentStep("done");
+      await new Promise(r => setTimeout(r, 800));
       placeOrder(paymentOrder.id || `rzp_mock_${Date.now()}`, `pay_mock_${Date.now()}`);
     } catch (err: any) {
+      setPaymentStep("select");
       toast({ title: "Payment failed", description: err?.message || err?.error || "Failed to initiate payment", variant: "destructive" });
     }
+  };
+
+  const handleCOD = () => {
+    setSelectedMethod("cod");
+    setPaymentStep("processing");
+    placeOrder(`cod_${Date.now()}`, `cod_${Date.now()}`);
   };
 
   if (items.length === 0) {
@@ -154,6 +190,7 @@ export default function Cart() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-6">
+          {/* Cart Items */}
           <div className="bg-card rounded-xl p-6 shadow-sm border">
             <h2 className="text-xl font-bold mb-4">Cart Items</h2>
             <div className="space-y-4">
@@ -187,20 +224,21 @@ export default function Cart() {
             </div>
           </div>
 
+          {/* Delivery Address */}
           <div className="bg-card rounded-xl p-6 shadow-sm border">
             <h2 className="text-xl font-bold mb-4">Delivery Address</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
-                <Input id="name" value={address.name} onChange={e => setAddress({ ...address, name: e.target.value })} required />
+                <Input id="name" value={address.name} onChange={e => setAddress({ ...address, name: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number *</Label>
-                <Input id="phone" value={address.phone} onChange={e => setAddress({ ...address, phone: e.target.value })} required />
+                <Input id="phone" value={address.phone} onChange={e => setAddress({ ...address, phone: e.target.value })} />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="addressLine1">Address Line 1 *</Label>
-                <Input id="addressLine1" value={address.addressLine1} onChange={e => setAddress({ ...address, addressLine1: e.target.value })} required />
+                <Input id="addressLine1" value={address.addressLine1} onChange={e => setAddress({ ...address, addressLine1: e.target.value })} />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
@@ -208,16 +246,17 @@ export default function Cart() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="city">City *</Label>
-                <Input id="city" value={address.city} onChange={e => setAddress({ ...address, city: e.target.value })} required />
+                <Input id="city" value={address.city} onChange={e => setAddress({ ...address, city: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pincode">Pincode *</Label>
-                <Input id="pincode" value={address.pincode} onChange={e => setAddress({ ...address, pincode: e.target.value })} required />
+                <Input id="pincode" value={address.pincode} onChange={e => setAddress({ ...address, pincode: e.target.value })} />
               </div>
             </div>
           </div>
         </div>
 
+        {/* Order Summary */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-card rounded-xl p-6 shadow-sm border">
             <h2 className="text-xl font-bold mb-4">Order Summary</h2>
@@ -273,16 +312,86 @@ export default function Cart() {
               <span>₹{total.toFixed(2)}</span>
             </div>
 
-            <Button
-              className="w-full h-12 text-lg"
-              onClick={handleCheckout}
-              disabled={createPaymentOrderMutation.isPending || createOrderMutation.isPending}
-            >
-              {(createPaymentOrderMutation.isPending || createOrderMutation.isPending) ? "Processing..." : `Pay ₹${total.toFixed(2)}`}
+            <Button className="w-full h-12 text-lg" onClick={handleOpenPaymentDialog}>
+              Proceed to Payment
             </Button>
           </div>
         </div>
       </div>
+
+      {/* ── Payment Method Dialog ── */}
+      <Dialog open={paymentDialogOpen} onOpenChange={(open) => {
+        if (!open && paymentStep !== "processing") setPaymentDialogOpen(false);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-serif">Choose Payment Method</DialogTitle>
+          </DialogHeader>
+
+          {/* Order total reminder */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-center mb-2">
+            <p className="text-sm text-amber-700 font-medium">Amount to pay</p>
+            <p className="text-2xl font-bold text-amber-600">₹{total.toFixed(2)}</p>
+          </div>
+
+          {paymentStep === "select" && (
+            <div className="space-y-3 pt-1">
+              {/* Pay Online */}
+              <button
+                onClick={handlePayOnline}
+                disabled={createPaymentOrderMutation.isPending}
+                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 transition-colors text-left group"
+              >
+                <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+                  <Smartphone className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-base">Pay Online</p>
+                  <p className="text-sm text-muted-foreground">UPI · Cards · Net Banking · Wallets</p>
+                </div>
+                <span className="text-xs font-semibold px-2 py-1 bg-green-100 text-green-700 rounded-full">Recommended</span>
+              </button>
+
+              {/* Cash on Delivery */}
+              <button
+                onClick={handleCOD}
+                disabled={createOrderMutation.isPending}
+                className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors text-left"
+              >
+                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  <Truck className="w-6 h-6 text-gray-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-base">Cash on Delivery</p>
+                  <p className="text-sm text-muted-foreground">Pay when your order arrives</p>
+                </div>
+              </button>
+
+              <p className="text-center text-xs text-muted-foreground pt-1">
+                🔒 Secured by Razorpay · 256-bit SSL encrypted
+              </p>
+            </div>
+          )}
+
+          {paymentStep === "processing" && (
+            <div className="flex flex-col items-center py-8 gap-4">
+              <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
+              <p className="text-base font-medium text-center">
+                {selectedMethod === "cod" ? "Placing your order…" : "Processing payment…"}
+              </p>
+              <p className="text-sm text-muted-foreground">Please don't close this window</p>
+            </div>
+          )}
+
+          {paymentStep === "done" && (
+            <div className="flex flex-col items-center py-8 gap-3">
+              <CheckCircle2 className="w-14 h-14 text-green-500" />
+              <p className="text-lg font-bold text-green-700">Payment Successful!</p>
+              <p className="text-sm text-muted-foreground">Placing your order…</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

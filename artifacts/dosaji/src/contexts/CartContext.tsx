@@ -16,9 +16,12 @@ interface CartContextType {
   clearCart: () => void;
   cartTotal: number;
   cartCount: number;
+  subtotal: number;
+  total: number;
   couponCode: string | null;
-  setCouponCode: (code: string | null) => void;
   couponDiscount: number;
+  setCoupon: (code: string | null, discount: number) => void;
+  setCouponCode: (code: string | null) => void;
   setCouponDiscount: (discount: number) => void;
 }
 
@@ -77,8 +80,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCouponDiscount(0);
   };
 
-  const cartTotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
+  const setCoupon = (code: string | null, discount: number) => {
+    setCouponCode(code);
+    setCouponDiscount(discount);
+  };
+
+  const cartTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartCount = items.reduce((count, item) => count + item.quantity, 0);
+
+  const subtotal = cartTotal;
+  const total = Math.max(0, subtotal + 40 + subtotal * 0.05 - couponDiscount);
 
   return (
     <CartContext.Provider
@@ -90,9 +101,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         clearCart,
         cartTotal,
         cartCount,
+        subtotal,
+        total,
         couponCode,
-        setCouponCode,
         couponDiscount,
+        setCoupon,
+        setCouponCode,
         setCouponDiscount,
       }}
     >

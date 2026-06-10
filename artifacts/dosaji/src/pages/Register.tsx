@@ -5,7 +5,6 @@ import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import logoSrc from "@assets/dosa_ji_logo_1781074968971.png";
 
@@ -13,12 +12,14 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"customer" | "shopkeeper">("customer");
-  
+  const [shopkeeperMode, setShopkeeperMode] = useState(false);
+
   const { login } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const registerMutation = useRegister();
+
+  const role = shopkeeperMode ? "shopkeeper" : "customer";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,24 +55,10 @@ export default function Register() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} />
-          </div>
-
-          <div className="space-y-3 pt-2">
-            <Label>I want to...</Label>
-            <RadioGroup value={role} onValueChange={(v) => setRole(v as any)} className="flex gap-4">
-              <div className="flex items-center space-x-2 border p-3 rounded-md flex-1 cursor-pointer hover:bg-muted/50">
-                <RadioGroupItem value="customer" id="r1" />
-                <Label htmlFor="r1" className="cursor-pointer">Order food</Label>
-              </div>
-              <div className="flex items-center space-x-2 border p-3 rounded-md flex-1 cursor-pointer hover:bg-muted/50">
-                <RadioGroupItem value="shopkeeper" id="r2" />
-                <Label htmlFor="r2" className="cursor-pointer">Manage shop</Label>
-              </div>
-            </RadioGroup>
           </div>
 
           <Button type="submit" className="w-full h-12 text-lg mt-4" disabled={registerMutation.isPending}>
@@ -79,9 +66,24 @@ export default function Register() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm">
+        <div className="mt-6 text-center text-sm">
           <span className="text-muted-foreground">Already have an account? </span>
           <Link href="/login" className="text-primary font-bold hover:underline">Sign in</Link>
+        </div>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={() => setShopkeeperMode(!shopkeeperMode)}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+          >
+            {shopkeeperMode ? "← Back to customer registration" : "Registering as a shop manager?"}
+          </button>
+          {shopkeeperMode && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mt-2">
+              Your account will be registered as a <strong>Shop Manager</strong>. You'll manage menu items and orders — not place food orders.
+            </p>
+          )}
         </div>
       </div>
     </div>

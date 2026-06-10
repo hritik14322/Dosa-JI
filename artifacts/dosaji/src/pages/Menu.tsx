@@ -1,23 +1,24 @@
 import { useState } from "react";
 import { useListMenuItems } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useCart } from "@/contexts/CartContext";
-import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Menu() {
   const [category, setCategory] = useState<string>("");
   const [isVeg, setIsVeg] = useState<boolean | undefined>(undefined);
   const { data: menuItems, isLoading } = useListMenuItems({ category: category || undefined, isVeg });
   const { addItem } = useCart();
+  const { user } = useAuth();
+
+  const isStaff = user?.role === "shopkeeper" || user?.role === "admin";
 
   const categories = ["All", "Dosa", "Pizza", "Burger", "Rolls", "Beverages"];
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold font-serif mb-8 text-center">Our Menu</h1>
-      
-      {/* Filters */}
+
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div className="flex flex-wrap gap-2">
           {categories.map((c) => (
@@ -42,7 +43,6 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Menu Grid */}
       {isLoading ? (
         <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
       ) : (
@@ -68,6 +68,11 @@ export default function Menu() {
                     </div>
                   </div>
                 )}
+                {!item.isAvailable && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <span className="bg-white text-sm font-semibold px-3 py-1 rounded-full text-red-600">Out of Stock</span>
+                  </div>
+                )}
               </div>
               <div className="p-5 flex flex-col flex-grow">
                 <div className="flex justify-between items-start mb-2">
@@ -75,14 +80,16 @@ export default function Menu() {
                   <span className="font-bold text-primary whitespace-nowrap ml-2">₹{item.price}</span>
                 </div>
                 <p className="text-muted-foreground text-sm mb-4 flex-grow line-clamp-2">{item.description}</p>
-                <Button 
-                  onClick={() => addItem({ menuItemId: item.id, name: item.name, price: item.price, quantity: 1, imageUrl: item.imageUrl })}
-                  disabled={!item.isAvailable}
-                  className="w-full"
-                  variant={item.isAvailable ? "default" : "secondary"}
-                >
-                  {item.isAvailable ? "Add to Cart" : "Out of Stock"}
-                </Button>
+                {!isStaff && (
+                  <Button
+                    onClick={() => addItem({ menuItemId: item.id, name: item.name, price: item.price, quantity: 1, imageUrl: item.imageUrl })}
+                    disabled={!item.isAvailable}
+                    className="w-full"
+                    variant={item.isAvailable ? "default" : "secondary"}
+                  >
+                    {item.isAvailable ? "Add to Cart" : "Out of Stock"}
+                  </Button>
+                )}
               </div>
             </div>
           ))}

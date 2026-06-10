@@ -12,6 +12,8 @@ export const Navbar = () => {
   const { cartCount } = useCart();
   const [, setLocation] = useLocation();
 
+  const isStaff = user?.role === "shopkeeper" || user?.role === "admin";
+
   const handleLogout = () => {
     logout();
     setLocation("/");
@@ -23,7 +25,7 @@ export const Navbar = () => {
       <Link href="/menu" className="text-foreground hover:text-primary transition-colors font-medium">Menu</Link>
       <Link href="/about" className="text-foreground hover:text-primary transition-colors font-medium">About</Link>
       <Link href="/contact" className="text-foreground hover:text-primary transition-colors font-medium">Contact</Link>
-      
+
       {isAuthenticated && user?.role === "customer" && (
         <Link href="/orders" className="text-foreground hover:text-primary transition-colors font-medium">My Orders</Link>
       )}
@@ -50,14 +52,16 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/cart" className="relative p-2 text-foreground hover:text-primary transition-colors">
-            <ShoppingCart className="w-5 h-5" />
-            {cartCount > 0 && (
-              <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+          {!isStaff && (
+            <Link href="/cart" className="relative p-2 text-foreground hover:text-primary transition-colors">
+              <ShoppingCart className="w-5 h-5" />
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           <div className="hidden md:flex items-center gap-4">
             {isAuthenticated ? (

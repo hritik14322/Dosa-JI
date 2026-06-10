@@ -118,7 +118,7 @@ function ImageInput({ value, onChange }: { value: string; onChange: (url: string
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},

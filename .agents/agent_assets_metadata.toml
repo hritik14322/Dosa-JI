@@ -1,0 +1,98 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "b-PUvi_XUyjc-aXQFRxc3"
+uri = "file://artifacts/mockup-sandbox/public/images/dosajii-hero.png"
+type = "image"
+title = "Indian food spread hero"
+
+[[generated]]
+id = "R82iMHlENXkQJeHlNcdFS"
+uri = "file://artifacts/mockup-sandbox/public/images/dish1.png"
+type = "image"
+title = "masala dosa on banana leaf"
+
+[[generated]]
+id = "RQ-DQ2r_HFmZJVyEwuIr6"
+uri = "file://artifacts/mockup-sandbox/public/images/dish2.png"
+type = "image"
+title = "idli sambar on banana leaf"
+
+[[generated]]
+id = "jvNasybRDIoGyEPBrZsfZ"
+uri = "file://artifacts/mockup-sandbox/public/images/dish3.png"
+type = "image"
+title = "medu vada on banana leaf"
+
+[[generated]]
+id = "S9SXyvKFMTobzHmu3HUnF"
+uri = "file://artifacts/mockup-sandbox/public/images/dish4.png"
+type = "image"
+title = "uttapam on banana leaf"
+
+[[generated]]
+id = "kfJFZH5wqqp6skSZEl_Hd"
+uri = "file://artifacts/mockup-sandbox/public/images/dish5.png"
+type = "image"
+title = "pongal with chutney"
+
+[[generated]]
+id = "xAIOq0YjGh3uX7HfqG4yD"
+uri = "file://artifacts/mockup-sandbox/public/images/dish6.png"
+type = "image"
+title = "filter coffee in brass tumbler"
+
+[[generated]]
+id = "jmoaX8iTCXNK4kd5W9sFI"
+uri = "file://artifacts/mockup-sandbox/public/images/masala-dosa.png"
+type = "image"
+title = "Masala Dosa with Chutney"
+
+[[generated]]
+id = "Sl20hAJkEdHPcdrNw24Zh"
+uri = "file://artifacts/mockup-sandbox/public/images/idli-sambar.png"
+type = "image"
+title = "Idli and Sambar"
+
+[[generated]]
+id = "IswymRprRoiBu5n50pSgy"
+uri = "file://artifacts/mockup-sandbox/public/images/medu-vada.png"
+type = "image"
+title = "Crispy Medu Vada"
+
+[[generated]]
+id = "GzHwhPOvEh8hrxURiaQZM"
+uri = "file://artifacts/mockup-sandbox/public/images/rava-dosa.png"
+type = "image"
+title = "Rava Dosa"
+
+[[generated]]
+id = "Hj8x0yKlqhLq5q1bMQA_2"
+uri = "file://artifacts/mockup-sandbox/public/images/ven-pongal.png"
+type = "image"
+title = "Ven Pongal"
+
+[[generated]]
+id = "YiEBArg3JjhyDxXCTRVKA"
+uri = "file://artifacts/mockup-sandbox/public/images/filter-coffee.png"
+type = "image"
+title = "South Indian Filter Coffee"
+
+[[generated]]
+id = "-2CDRVe7HF9PDd4p0nYas"
+uri = "file://artifacts/mockup-sandbox/public/images/mysore-pak.png"
+type = "image"
+title = "Mysore Pak Sweets"
+
+[[generated]]
+id = "LNIsziPmzYCADshQZssUm"
+uri = "file://artifacts/mockup-sandbox/public/images/ghee-roast.png"
+type = "image"
+title = "Ghee Roast Dosa"
+
+[[generated]]
+id = "ymZrEUr9YmBqYcg7z4PoE"
+uri = "file://artifacts/mockup-sandbox/public/images/thali.png"
+type = "image"
+title = "South Indian Meals Thali"

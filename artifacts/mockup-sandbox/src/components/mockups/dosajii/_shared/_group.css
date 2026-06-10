@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&family=Poppins:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+
+:root {
+  --dosa-bg: #FFFDF7;
+  --dosa-white: #FFFFFF;
+  --dosa-cream: #FFF8EE;
+  --dosa-amber: #E8920A;
+  --dosa-saffron: #F5A623;
+  --dosa-dark: #1A1200;
+  --dosa-dark-mid: #3D2200;
+  --dosa-text: #1C1C1C;
+  --dosa-muted: #6B6B6B;
+  --dosa-card-border: rgba(245, 201, 122, 0.4);
+  --dosa-shadow: 0 2px 16px rgba(232, 146, 10, 0.10);
+}

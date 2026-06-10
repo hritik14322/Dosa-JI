@@ -1,0 +1,187 @@
+Build a full-stack restaurant web app called "DOSA JII" — a South Indian restaurant. Use the MERN stack (MongoDB Atlas, Express.js, React, Node.js) with Tailwind CSS for styling.
+
+=== THEME & BRANDING ===
+Tagline: "Karna hai chill toh Dosa Ji se mill"
+
+Color palette (premium light theme — NOT fully dark):
+- Page background: warm off-white/cream #FFFDF7
+- Section alternates: pure white #FFFFFF and light cream #FFF8EE
+- Primary accent: rich amber/gold #E8920A
+- Secondary accent: deep saffron #F5A623
+- Dark contrast (navbar, footer, hero): #1A1200 (very dark brown-black, not pure black)
+- Text primary: #1C1C1C
+- Text secondary: #6B6B6B
+- Card backgrounds: #FFFFFF with soft golden border #F5C97A at 40% opacity
+- Highlight/badge: amber gradient from #F5A623 to #E8920A
+
+Typography:
+- Headings: Google Font "Playfair Display" (elegant, premium serif)
+- Body & UI: Google Font "Inter"
+- Accent/tagline: Google Font "Poppins" semi-bold
+
+Visual style (IMPORTANT):
+- NOT a dark website — light creamy backgrounds dominate most pages
+- Only the navbar (scrolled state), hero section, and footer use the dark #1A1200 color
+- Hero section: dark overlay on a vibrant food background image (use a placeholder gradient from #1A1200 to #3D2200), gold text, tagline in Poppins italic
+- Cards: white background, subtle gold/amber border, soft box-shadow (0 2px 16px rgba(232,146,10,0.10)), rounded-xl
+- Buttons: primary = solid amber gradient (#F5A623 → #E8920A), white text, rounded-full, subtle hover scale
+- Section headings: dark brown #1A1200 with a decorative thin gold underline accent
+- Badges (Veg/Non-veg): green pill / red pill, small and clean
+- Navbar (default/top): transparent with white logo & links over hero; (scrolled): white background, dark links, gold logo accent, subtle shadow
+- Overall feel: think Zomato meets a premium Indian sweets brand — warm, inviting, appetizing, slightly festive
+
+=== USER ROLES ===
+Three roles: Customer, Shopkeeper, Admin
+- Role-based authentication using JWT tokens stored in localStorage
+- Registration: name, email, password, role selection
+- Protected routes per role
+
+=== PAGES & FEATURES ===
+
+1. HOME PAGE (/)
+   - Navbar: Logo ("DOSA JII" in Playfair Display with gold accent), links: Menu, About, Contact, Cart icon (gold) with item count badge, Login/Register button (gold outlined → fills on hover). Transparent on top, white+shadow on scroll.
+   - Hero section: full-width, dark warm background (#1A1200 to #3D2200 gradient or food image with overlay), centered content:
+     * "DOSA JII" in large Playfair Display gold text
+     * Tagline: "Karna hai chill toh Dosa Ji se mill" in Poppins italic, warm white/cream
+     * Two CTA buttons: "Order Now" (solid gold) & "Explore Menu" (outlined white)
+     * Subtle animated floating food emoji/icons in background (dosa, steam)
+   - Stats bar below hero: "500+ Happy Customers | 30 Menu Items | 4.8★ Rating | 30 Min Delivery" — dark bg strip
+   - Featured dishes section: heading "Our Specialties", subtitle in muted text, 6 cards in 3-col grid
+   - Categories section: horizontal scroll of category chips with icons (Dosa, Idli, Vada, Rice, etc.) — clicking navigates to /menu?category=X
+   - "Why Dosa Jii?" section: cream background, 4 feature cards with gold icon, bold heading, short desc
+     * Fresh & Hygienic | Authentic Recipe | Quick Delivery | Best Prices
+   - Testimonials section: white background, 3 review cards with star rating, customer name, photo placeholder
+   - CTA banner: dark background (#1A1200), gold text "Hungry? Order in 3 clicks.", gold button
+   - Footer: dark background (#1A1200), gold "DOSA JII" logo, 4 columns (Quick Links, Contact, Hours, Social), bottom bar with copyright
+
+2. MENU PAGE (/menu)
+   - Sticky filter bar: category tabs (All, Dosa, Idli, Vada, Rice, Beverages, Sweets, Combos, Specials) with active gold underline
+   - Search bar: rounded, with search icon, real-time filter
+   - Sort dropdown: Popular, Price: Low to High, Price: High to Low, New Arrivals
+   - Veg-only toggle switch (gold toggle)
+   - Dish cards (grid, 3 col desktop / 2 col tablet / 1 col mobile):
+     * Food image (top, rounded-t-xl), height 200px, object-cover
+     * Veg/Non-veg badge (top-left of image)
+     * "Featured" ribbon badge if marked featured (gold ribbon top-right)
+     * Name (Playfair Display, 18px), short description (2 lines, truncated), price in ₹ (bold gold)
+     * "Add to Cart" button (full width, solid gold, rounded-b-xl)
+     * On hover: card lifts slightly (translateY -4px), shadow deepens
+   - Cart sidebar: slides in from right, semi-transparent blur backdrop, shows items, qty +/- controls, subtotal, "Go to Cart" button
+
+3. DISH DETAIL PAGE (/menu/:id)
+   - Two column layout: left = large image, right = details
+   - Name, category badge, veg/non-veg badge, description, price
+   - Qty selector, Add to Cart button (gold, large)
+   - "You may also like" related dishes (horizontal scroll)
+
+4. CART PAGE (/cart)
+   - Left side: cart items list with image, name, price, qty controls, remove
+   - Right side sticky: order summary card
+     * Subtotal, Delivery ₹30 (free above ₹299), GST 5%, Coupon field (apply button)
+     * Total in bold gold
+     * "Proceed to Payment" button (large, gold gradient)
+   - Empty cart state: illustration + "Your cart is empty" + "Browse Menu" button
+
+5. CHECKOUT PAGE (/checkout) [Protected: logged-in customers]
+   - Step indicator: 1. Delivery Details → 2. Payment (gold step bar)
+   - Step 1: Delivery form — name, phone, address line 1, address line 2, city, pincode
+   - Step 2: Order summary + Payment
+     * Integrate Razorpay payment gateway (best for India — supports UPI, PhonePe, GPay, cards, net banking, wallets)
+     * Backend: POST /api/payment/create-order → calls Razorpay API → returns razorpay_order_id
+     * Frontend: load Razorpay checkout JS, open modal with order_id, key_id, amount, restaurant name, customer info
+     * On success: POST /api/payment/verify with razorpay_payment_id, razorpay_order_id, razorpay_signature → verify HMAC on backend → save order to DB with status "Placed"
+
+6. ORDER CONFIRMATION PAGE (/order-success)
+   - Gold checkmark animation (CSS)
+   - "Order Placed Successfully!" heading
+   - Order ID, estimated time "30–45 minutes"
+   - Simple status timeline: Placed ✓ → Preparing → Out for Delivery → Delivered
+   - Buttons: "Track Order" (outlined) | "Order More" (gold solid)
+
+7. CUSTOMER PROFILE (/profile) [Protected]
+   - Sidebar: avatar (initials circle in gold), name, email, nav links
+   - My Orders: table/cards with order ID, date, items summary, total, status badge (color-coded)
+   - Edit Profile: name, phone, default address
+   - Change Password form
+
+8. LOGIN (/login) & REGISTER (/register)
+   - Centered card on cream background, gold top border accent
+   - Social login placeholder (Google OAuth — add if possible with Passport.js)
+   - Forgot password: email input → Nodemailer sends reset link
+
+9. ABOUT PAGE (/about)
+   - Hero: dark background, "Our Story" heading
+   - Story section: text + chef illustration placeholder
+   - Team section: 3 placeholder cards (Owner, Head Chef, Manager)
+   - Values section: same 4 cards as homepage "Why Dosa Jii"
+
+10. CONTACT PAGE (/contact)
+    - Contact form: name, email, subject, message — submits via Nodemailer
+    - Info cards: address, phone, email, hours
+    - Embedded Google Maps placeholder (iframe)
+
+11. SHOPKEEPER DASHBOARD (/shopkeeper) [Protected: shopkeeper role]
+    - Light dashboard, gold sidebar accent
+    - Overview: 4 stat cards (Menu Items, Today's Orders, Revenue Today, Pending)
+    - Menu Management:
+      * Add dish form: name, description, price, category dropdown, veg/non-veg toggle, image upload (Cloudinary), mark as featured toggle, availability toggle
+      * Dishes table: image thumbnail, name, price, category, available toggle, featured toggle, edit/delete actions
+    - Order Management:
+      * Orders table: ID, customer, items count, total, status dropdown (update inline), time
+
+12. ADMIN PANEL (/admin) [Protected: admin role]
+    - Full dashboard with Recharts:
+      * Bar chart: orders per day (last 7 days) in gold color
+      * Line chart: revenue last 30 days
+      * Pie chart: orders by category
+    - User Management: table of all users, role badge, change role, deactivate
+    - Full Menu CRUD (same as shopkeeper + delete any)
+    - All Orders with filters (status, date range, search by customer)
+    - Coupon Management: create code, type (percent/flat), value, min order, expiry, toggle active
+    - Restaurant Settings: name, tagline, address, phone, delivery charge, GST %, free delivery above amount
+
+=== BACKEND API (Node.js + Express) ===
+Base URL: /api
+
+Routes: auth (register, login, forgot-password, reset-password), menu (full CRUD + availability toggle), orders (create, my orders, all orders, update status), payment (create Razorpay order, verify signature), users (admin CRUD), coupons (create, list, apply/validate)
+
+=== DATABASE SCHEMAS (MongoDB) ===
+- User: name, email, password(bcrypt), role(customer/shopkeeper/admin), phone, address, isActive, createdAt
+- MenuItem: name, description, price, category, image(Cloudinary URL), isVeg, isAvailable, isFeatured, createdBy, createdAt
+- Order: userId, items[{menuItemId, name, price, qty, image}], deliveryAddress, subtotal, deliveryCharge, gst, couponDiscount, total, razorpayOrderId, razorpayPaymentId, status(Placed/Preparing/OutForDelivery/Delivered/Cancelled), createdAt
+- Coupon: code, discountType, value, minOrder, maxUses, usedCount, expiresAt, isActive
+
+=== ENVIRONMENT VARIABLES (.env) ===
+MONGO_URI=
+JWT_SECRET=
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+EMAIL_USER=
+EMAIL_PASS=
+CLIENT_URL=
+
+=== TECH STACK ===
+Frontend: React 18, React Router v6, Tailwind CSS, Axios, Recharts, react-hot-toast, Razorpay JS SDK
+Backend: Node.js, Express, Mongoose, JWT, Bcrypt, Multer, Cloudinary SDK, Nodemailer, Razorpay Node SDK
+DB: MongoDB Atlas (free tier)
+Payment: Razorpay
+
+=== FOLDER STRUCTURE ===
+/client → React app (/src: pages, components, context, hooks, utils, assets)
+/server → Express app (/routes, /controllers, /models, /middleware, /config)
+Root: package.json with concurrently script, .env, README.md
+
+=== ADDITIONAL REQUIREMENTS ===
+- Fully mobile responsive (hamburger menu on mobile, bottom cart bar on mobile)
+- Loading skeletons (cream/gold shimmer) for menu cards
+- Smooth page transitions (framer-motion fadeIn)
+- Toast notifications (react-hot-toast) — gold themed
+- 404 page with dosa illustration placeholder + "Go Home" button
+- Seed script /server/seed.js: 20 sample dishes (dosas, idlis, vadas, beverages, combos) with realistic names, descriptions, prices in ₹40–₹250 range
+- Default admin account seeded: admin@dosajii.com / Admin@123
+- Default shopkeeper: shop@dosajii.com / Shop@123
+- Run both client+server with concurrently from root
+- README with full setup guide including Razorpay test mode instructions

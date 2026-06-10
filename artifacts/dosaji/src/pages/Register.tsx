@@ -12,23 +12,19 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [shopkeeperMode, setShopkeeperMode] = useState(false);
 
   const { login } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const registerMutation = useRegister();
 
-  const role = shopkeeperMode ? "shopkeeper" : "customer";
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    registerMutation.mutate({ data: { name, email, password, role } }, {
+    registerMutation.mutate({ data: { name, email, password, role: "customer" } }, {
       onSuccess: (data) => {
         login(data.token, data.user);
         toast({ title: "Account created!", description: "Welcome to Dosa Ji." });
-        if (data.user.role === "shopkeeper") setLocation("/shopkeeper");
-        else setLocation("/");
+        setLocation("/");
       },
       onError: (err: any) => {
         toast({ title: "Registration failed", description: err.error || "Could not create account", variant: "destructive" });
@@ -69,21 +65,6 @@ export default function Register() {
         <div className="mt-6 text-center text-sm">
           <span className="text-muted-foreground">Already have an account? </span>
           <Link href="/login" className="text-primary font-bold hover:underline">Sign in</Link>
-        </div>
-
-        <div className="mt-4 text-center">
-          <button
-            type="button"
-            onClick={() => setShopkeeperMode(!shopkeeperMode)}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-          >
-            {shopkeeperMode ? "← Back to customer registration" : "Registering as a shop manager?"}
-          </button>
-          {shopkeeperMode && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mt-2">
-              Your account will be registered as a <strong>Shop Manager</strong>. You'll manage menu items and orders — not place food orders.
-            </p>
-          )}
         </div>
       </div>
     </div>

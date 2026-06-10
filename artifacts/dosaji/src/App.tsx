@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,32 +19,26 @@ import Register from "@/pages/Register";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 
-// Shopkeeper
-import ShopkeeperDashboard from "@/pages/shopkeeper/Dashboard";
-import ShopkeeperOrders from "@/pages/shopkeeper/Orders";
-import ShopkeeperMenu from "@/pages/shopkeeper/Menu";
+// Shopkeeper full-page layout
+import ShopkeeperLayout from "@/layouts/ShopkeeperLayout";
 
 // Admin
 import AdminDashboard from "@/pages/admin/Dashboard";
 import AdminUsers from "@/pages/admin/Users";
 import AdminCoupons from "@/pages/admin/Coupons";
+import ShopkeeperMenu from "@/pages/shopkeeper/Menu";
+import ShopkeeperOrders from "@/pages/shopkeeper/Orders";
 
 const queryClient = new QueryClient();
 
-// Route guards
-const ProtectedRoute = ({ component: Component, allowedRoles }: { component: any, allowedRoles?: string[] }) => {
+const ProtectedRoute = ({ component: Component, allowedRoles }: { component: any; allowedRoles?: string[] }) => {
   const { isAuthenticated, user } = useAuth();
-  
   if (!isAuthenticated) return <Redirect to="/login" />;
-  
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Redirect to="/" />;
-  }
-  
+  if (allowedRoles && user && !allowedRoles.includes(user.role)) return <Redirect to="/" />;
   return <Component />;
 };
 
-function AppRouter() {
+function CustomerLayout() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -58,15 +52,10 @@ function AppRouter() {
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
           <Route path="/order-confirmation/:id" component={OrderConfirmation} />
-          
+
           <Route path="/orders"><ProtectedRoute component={Orders} allowedRoles={["customer"]} /></Route>
           <Route path="/profile"><ProtectedRoute component={Profile} /></Route>
-          
-          {/* Shopkeeper Routes */}
-          <Route path="/shopkeeper"><ProtectedRoute component={ShopkeeperDashboard} allowedRoles={["shopkeeper", "admin"]} /></Route>
-          <Route path="/shopkeeper/orders"><ProtectedRoute component={ShopkeeperOrders} allowedRoles={["shopkeeper", "admin"]} /></Route>
-          <Route path="/shopkeeper/menu"><ProtectedRoute component={ShopkeeperMenu} allowedRoles={["shopkeeper", "admin"]} /></Route>
-          
+
           {/* Admin Routes */}
           <Route path="/admin"><ProtectedRoute component={AdminDashboard} allowedRoles={["admin"]} /></Route>
           <Route path="/admin/users"><ProtectedRoute component={AdminUsers} allowedRoles={["admin"]} /></Route>
@@ -77,7 +66,7 @@ function AppRouter() {
           <Route component={NotFound} />
         </Switch>
       </main>
-      
+
       <footer className="bg-muted py-8 text-center text-sm text-muted-foreground border-t mt-auto">
         <div className="container mx-auto px-4">
           <p className="font-serif font-bold text-lg mb-2 text-foreground">Dosa Ji</p>
@@ -86,6 +75,17 @@ function AppRouter() {
       </footer>
     </div>
   );
+}
+
+function AppRouter() {
+  const [location] = useLocation();
+
+  // Shopkeeper routes get their own full-page sidebar layout (no main navbar/footer)
+  if (location.startsWith("/shopkeeper")) {
+    return <ShopkeeperLayout />;
+  }
+
+  return <CustomerLayout />;
 }
 
 export default function App() {

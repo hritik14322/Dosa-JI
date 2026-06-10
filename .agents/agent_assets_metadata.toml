@@ -192,3 +192,9 @@ id = "H4FOirGuqZVIza2fex2DC"
 uri = "file://artifacts/mockup-sandbox/public/images/fries-cheesy.png"
 type = "image"
 title = "Cheesy Fries"
+
+[[generated]]
+id = "kRmTJBAUciFnYoFviGdq4"
+uri = "file://artifacts/mockup-sandbox/public/images/dosa-masala.png"
+type = "image"
+title = "generated_image"

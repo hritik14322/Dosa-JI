@@ -13,10 +13,10 @@ const DISHES = [
   { id: 6, name: "Farm House Pizza", desc: "Loaded with crunchy crisp capsicum, succulent mushrooms, fresh tomatoes, and onions.", price: 249, type: "veg", featured: true, img: "/__mockup/images/pizza-farmhouse.png", category: "Pizza" },
   { id: 7, name: "Crispy Veg Burger", desc: "Golden potato and pea patty with fresh lettuce, tomatoes, and creamy mayo in a toasted bun.", price: 119, type: "veg", featured: false, img: "/__mockup/images/burger-veg.png", category: "Burgers" },
   { id: 8, name: "Mango Shake", desc: "Refreshing and sweet mango milkshake made with real mango pulp.", price: 79, type: "veg", featured: false, img: "/__mockup/images/shake-mango.png", category: "Shakes" },
-  { id: 9, name: "Cheesy Fries", desc: "Crispy french fries smothered in our rich, gooey signature cheese sauce.", price: 109, type: "veg", featured: false, img: "/__mockup/images/fries-cheesy.png", category: "Fries" }
+  { id: 9, name: "Masala Dosa", desc: "Crispy golden dosa stuffed with spiced potato filling, served with fresh sambar and coconut chutney.", price: 109, type: "veg", featured: true, img: "/__mockup/images/dosa-masala.png", category: "Dosa" }
 ];
 
-const CATEGORIES = ["All", "🍕 Pizza", "🍔 Burgers", "🌮 Wraps", "🍟 Fries", "🥤 Shakes", "🎁 Combos", "⭐ Specials"];
+const CATEGORIES = ["All", "🫓 Dosa", "🍕 Pizza", "🍔 Burgers", "🌮 Wraps", "🍟 Fries", "🥤 Shakes", "⭐ Specials"];
 
 export function Menu() {
   const [activeTab, setActiveTab] = useState("All");

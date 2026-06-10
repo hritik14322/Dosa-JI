@@ -18,7 +18,7 @@ export function Home() {
   }, []);
 
   const categories = [
-    "🍕 Pizza", "🍔 Burgers", "🌮 Wraps", "🍟 Fries", "🥤 Shakes", "🎁 Combos", "⭐ Specials"
+    "🫓 Dosa", "🍕 Pizza", "🍔 Burgers", "🌮 Wraps", "🍟 Fries", "🥤 Shakes", "⭐ Specials"
   ];
 
   const dishes = [
@@ -27,7 +27,7 @@ export function Home() {
     { name: "Loaded Cheese Fries", desc: "Golden fries topped with jalapenos and cheese sauce.", price: "129", image: "fries.png", veg: true },
     { name: "Spicy Paneer Wrap", desc: "Grilled paneer with crunchy veggies in a soft tortilla.", price: "139", image: "wrap.png", veg: true },
     { name: "Thick Chocolate Shake", desc: "Rich chocolate blend topped with whipped cream.", price: "119", image: "shake.png", veg: true },
-    { name: "Mega Combo Meal", desc: "Burger, fries, and a refreshing drink.", price: "249", image: "combo.png", veg: true }
+    { name: "Masala Dosa", desc: "Crispy golden dosa stuffed with spiced potato filling, served with sambar and chutney.", price: "109", image: "dosa-masala.png", veg: true }
   ];
 
   const features = [

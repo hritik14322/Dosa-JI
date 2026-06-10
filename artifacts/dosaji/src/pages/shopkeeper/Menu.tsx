@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2, Plus, ChevronDown } from "lucide-react";
+import { Pencil, Trash2, Plus, ChevronDown, Tag, X } from "lucide-react";
 
 interface MenuFormData {
   name: string;
@@ -56,7 +56,6 @@ function CategoryCombobox({ value, onChange, categories }: {
 }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const allOptions = Array.from(new Set([...DEFAULT_CATEGORIES, ...categories]));
   const filtered = allOptions.filter((c) => c.toLowerCase().includes(input.toLowerCase()));
@@ -71,7 +70,6 @@ function CategoryCombobox({ value, onChange, categories }: {
     <div className="relative">
       <div className="relative">
         <Input
-          ref={inputRef}
           value={input}
           onChange={(e) => { setInput(e.target.value); onChange(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
@@ -114,10 +112,18 @@ export default function ShopkeeperMenu() {
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<MenuFormData>(emptyForm);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteCategoryName, setDeleteCategoryName] = useState<string | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getListMenuItemsQueryKey() });
 
-  const existingCategories = Array.from(new Set(menuItems?.map((i) => i.category) ?? []));
+  // Derive unique categories with item counts
+  const categoryStats = (menuItems ?? []).reduce<Record<string, number>>((acc, item) => {
+    acc[item.category] = (acc[item.category] ?? 0) + 1;
+    return acc;
+  }, {});
+  const existingCategories = Object.keys(categoryStats);
 
   const handleToggle = (id: number, current: boolean) => {
     toggleMutation.mutate({ id, data: { isAvailable: !current } }, {
@@ -161,7 +167,7 @@ export default function ShopkeeperMenu() {
       imageUrl: form.imageUrl || "",
       isVeg: form.isVeg,
       isAvailable: form.isAvailable,
-      sizes: form.sizes || null,
+      sizes: form.sizes.trim() || null,
     };
 
     if (editId !== null) {
@@ -185,6 +191,24 @@ export default function ShopkeeperMenu() {
     });
   };
 
+  const handleDeleteCategory = async () => {
+    if (!deleteCategoryName) return;
+    const items = (menuItems ?? []).filter((i) => i.category === deleteCategoryName);
+    setDeletingCategory(true);
+    try {
+      for (const item of items) {
+        await deleteMutation.mutateAsync({ id: item.id });
+      }
+      toast({ title: `Category "${deleteCategoryName}" deleted`, description: `${items.length} item(s) removed.` });
+      invalidate();
+    } catch {
+      toast({ title: "Some items could not be deleted", variant: "destructive" });
+    } finally {
+      setDeletingCategory(false);
+      setDeleteCategoryName(null);
+    }
+  };
+
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   if (isLoading) {
@@ -195,11 +219,52 @@ export default function ShopkeeperMenu() {
     <div className="px-4 py-6 max-w-6xl">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Manage Menu</h1>
-        <Button onClick={openAdd} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Item
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowCategories(!showCategories)}
+            className="border-amber-300 text-amber-700 hover:bg-amber-50 flex items-center gap-2"
+          >
+            <Tag className="w-4 h-4" />
+            Categories
+          </Button>
+          <Button onClick={openAdd} className="bg-amber-500 hover:bg-amber-600 text-white font-semibold flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Item
+          </Button>
+        </div>
       </div>
 
+      {/* Category management panel */}
+      {showCategories && (
+        <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-5 mb-6">
+          <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">All Categories</h2>
+          {existingCategories.length === 0 ? (
+            <p className="text-gray-400 text-sm">No categories yet.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {existingCategories.sort().map((cat) => (
+                <div
+                  key={cat}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200"
+                >
+                  <span className="text-sm font-medium text-amber-800">{cat}</span>
+                  <span className="text-xs text-amber-500">{categoryStats[cat]} item{categoryStats[cat] !== 1 ? "s" : ""}</span>
+                  <button
+                    onClick={() => setDeleteCategoryName(cat)}
+                    className="text-gray-400 hover:text-red-500 transition-colors ml-1"
+                    title={`Delete all items in "${cat}"`}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-gray-400 mt-3">Deleting a category removes all menu items within it.</p>
+        </div>
+      )}
+
+      {/* Menu items table */}
       <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -219,8 +284,11 @@ export default function ShopkeeperMenu() {
                 <tr key={item.id} className="hover:bg-amber-50/30 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                        {item.imageUrl && <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />}
+                      <div className="w-11 h-11 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-2xl">
+                        {item.imageUrl
+                          ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                          : "🍽️"
+                        }
                       </div>
                       <div>
                         <div className="font-semibold text-gray-900 text-sm">{item.name}</div>
@@ -319,16 +387,16 @@ export default function ShopkeeperMenu() {
               <Input id="item-image" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
             </div>
 
-            {/* Sizes */}
             <div className="space-y-2">
-              <Label htmlFor="item-sizes">Size Options <span className="text-gray-400 font-normal">(comma-separated)</span></Label>
+              <Label htmlFor="item-sizes">
+                Size Options <span className="text-gray-400 font-normal">(comma-separated)</span>
+              </Label>
               <Input
                 id="item-sizes"
                 value={form.sizes}
                 onChange={(e) => setForm({ ...form, sizes: e.target.value })}
                 placeholder="e.g. Small, Medium, Large"
               />
-              {/* Quick presets */}
               <div className="flex flex-wrap gap-1.5">
                 {SIZES_PRESETS.map((p) => (
                   <button
@@ -340,6 +408,15 @@ export default function ShopkeeperMenu() {
                     {p.label}
                   </button>
                 ))}
+                {form.sizes && (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, sizes: "" })}
+                    className="text-[11px] px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-500 hover:bg-gray-200 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
             </div>
 
@@ -368,7 +445,7 @@ export default function ShopkeeperMenu() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
+      {/* Delete single item */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -379,6 +456,30 @@ export default function ShopkeeperMenu() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteMutation.isPending}>
               {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete entire category */}
+      <AlertDialog open={deleteCategoryName !== null} onOpenChange={(open) => { if (!open) setDeleteCategoryName(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete category "{deleteCategoryName}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all{" "}
+              <strong>{deleteCategoryName ? (categoryStats[deleteCategoryName] ?? 0) : 0}</strong>{" "}
+              item(s) in this category. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingCategory}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCategory}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletingCategory}
+            >
+              {deletingCategory ? "Deleting…" : "Delete All Items"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

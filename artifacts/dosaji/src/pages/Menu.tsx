@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useListMenuItems } from "@workspace/api-client-react";
-import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -9,29 +8,47 @@ type VegFilter = "all" | "veg" | "nonveg";
 export default function Menu() {
   const [category, setCategory] = useState<string>("");
   const [vegFilter, setVegFilter] = useState<VegFilter>("all");
+
+  // Fetch all items once to derive unique categories dynamically
+  const { data: allItems } = useListMenuItems();
+
   const { data: menuItems, isLoading } = useListMenuItems({
     category: category || undefined,
     isVeg: vegFilter === "veg" ? true : vegFilter === "nonveg" ? false : undefined,
   });
+
   const { addItem } = useCart();
   const { user } = useAuth();
-
   const isStaff = user?.role === "shopkeeper" || user?.role === "admin";
-  const categories = ["All", "Dosa", "Pizza", "Burger", "Rolls", "Beverages"];
+
+  // Build category list dynamically from actual menu items
+  const dynamicCategories = allItems
+    ? Array.from(new Set(allItems.map((i) => i.category))).sort()
+    : [];
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold font-serif mb-8 text-center">Our Menu</h1>
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        {/* Category pills */}
+        {/* Category pills — dynamically loaded */}
         <div className="flex flex-wrap gap-2">
-          {categories.map((c) => (
+          <button
+            onClick={() => setCategory("")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
+              category === ""
+                ? "bg-primary text-primary-foreground border-primary shadow"
+                : "bg-background text-foreground border-border hover:border-primary/50"
+            }`}
+          >
+            All
+          </button>
+          {dynamicCategories.map((c) => (
             <button
               key={c}
-              onClick={() => setCategory(c === "All" ? "" : c)}
+              onClick={() => setCategory(c)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                category === (c === "All" ? "" : c)
+                category === c
                   ? "bg-primary text-primary-foreground border-primary shadow"
                   : "bg-background text-foreground border-border hover:border-primary/50"
               }`}
@@ -41,7 +58,7 @@ export default function Menu() {
           ))}
         </div>
 
-        {/* Veg / Non-veg toggle */}
+        {/* Veg / Non-veg 3-way toggle */}
         <div className="flex items-center bg-gray-100 rounded-full p-1 gap-1 flex-shrink-0">
           <button
             onClick={() => setVegFilter("all")}
@@ -84,9 +101,10 @@ export default function Menu() {
                 {item.imageUrl ? (
                   <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10">No image</div>
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10 text-4xl">
+                    🍽️
+                  </div>
                 )}
-                {/* Veg / Non-veg dot badge */}
                 <div className="absolute top-2 right-2 bg-white p-1 rounded-sm shadow-sm">
                   <div className={`w-3 h-3 border-2 flex items-center justify-center ${item.isVeg ? "border-green-600" : "border-red-600"}`}>
                     <div className={`w-1.5 h-1.5 rounded-full ${item.isVeg ? "bg-green-600" : "bg-red-600"}`} />
@@ -105,7 +123,6 @@ export default function Menu() {
                   <span className="font-bold text-primary whitespace-nowrap ml-2">₹{item.price}</span>
                 </div>
 
-                {/* Sizes badges */}
                 {item.sizes && (
                   <div className="flex flex-wrap gap-1 mb-2">
                     {item.sizes.split(",").map((s) => s.trim()).filter(Boolean).map((s) => (
@@ -119,14 +136,17 @@ export default function Menu() {
                 <p className="text-muted-foreground text-sm mb-4 flex-grow line-clamp-2">{item.description}</p>
 
                 {!isStaff && (
-                  <Button
+                  <button
                     onClick={() => addItem({ menuItemId: item.id, name: item.name, price: item.price, imageUrl: item.imageUrl })}
                     disabled={!item.isAvailable}
-                    className="w-full"
-                    variant={item.isAvailable ? "default" : "secondary"}
+                    className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors ${
+                      item.isAvailable
+                        ? "bg-amber-500 hover:bg-amber-600 text-white"
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    }`}
                   >
                     {item.isAvailable ? "Add to Cart" : "Out of Stock"}
-                  </Button>
+                  </button>
                 )}
               </div>
             </div>

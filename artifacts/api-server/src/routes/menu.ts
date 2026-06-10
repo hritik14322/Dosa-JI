@@ -32,19 +32,24 @@ function serializeMenuItem(item: typeof menuItemsTable.$inferSelect) {
 }
 
 router.get("/menu", async (req, res): Promise<void> => {
-  const parsed = ListMenuItemsQueryParams.safeParse(req.query);
-  const filters = parsed.success ? parsed.data : {};
+  const categoryFilter = req.query.category as string | undefined;
+  // z.coerce.boolean() treats string "false" as true (strings are truthy in JS).
+  // Parse manually to avoid this footgun.
+  const isVegRaw = req.query.isVeg;
+  const isVeg = isVegRaw === "true" ? true : isVegRaw === "false" ? false : undefined;
+  const featuredRaw = req.query.featured;
+  const featured = featuredRaw === "true" ? true : featuredRaw === "false" ? false : undefined;
 
   let items = await db.select().from(menuItemsTable);
 
-  if (filters.category) {
-    items = items.filter((i) => i.category === filters.category);
+  if (categoryFilter) {
+    items = items.filter((i) => i.category === categoryFilter);
   }
-  if (filters.isVeg !== undefined) {
-    items = items.filter((i) => i.isVeg === filters.isVeg);
+  if (isVeg !== undefined) {
+    items = items.filter((i) => i.isVeg === isVeg);
   }
-  if (filters.featured !== undefined) {
-    items = items.filter((i) => i.isFeatured === filters.featured);
+  if (featured !== undefined) {
+    items = items.filter((i) => i.isFeatured === featured);
   }
 
   res.json(items.map(serializeMenuItem));

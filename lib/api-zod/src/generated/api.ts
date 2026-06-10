@@ -269,7 +269,8 @@ export const CreateOrderBody = zod.object({
 }),
   "couponCode": zod.string().nullish(),
   "razorpayOrderId": zod.string().nullish(),
-  "razorpayPaymentId": zod.string().nullish()
+  "razorpayPaymentId": zod.string().nullish(),
+  "razorpaySignature": zod.string().nullish()
 })
 
 

@@ -17,4 +17,6 @@ export interface OrderInput {
   razorpayOrderId?: string | null;
   /** @nullable */
   razorpayPaymentId?: string | null;
+  /** @nullable */
+  razorpaySignature?: string | null;
 }

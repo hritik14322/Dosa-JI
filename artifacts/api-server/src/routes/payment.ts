@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { createHmac } from "crypto";
 import { requireAuth } from "../lib/auth";
 import { CreatePaymentOrderBody } from "@workspace/api-zod";
 
@@ -15,16 +16,12 @@ router.post("/payment/create-order", requireAuth, async (req, res): Promise<void
   const { amount } = parsed.data;
   const keyId = process.env.RAZORPAY_KEY_ID ?? null;
 
-  // If Razorpay keys are configured, create a real order
   if (keyId && process.env.RAZORPAY_KEY_SECRET) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const RazorpayMod = await import("razorpay" as any);
       const Razorpay = RazorpayMod.default ?? RazorpayMod;
-      const rzp = new Razorpay({
-        key_id: keyId,
-        key_secret: process.env.RAZORPAY_KEY_SECRET,
-      });
+      const rzp = new Razorpay({ key_id: keyId, key_secret: process.env.RAZORPAY_KEY_SECRET });
       const order = await rzp.orders.create({
         amount: Math.round(amount * 100),
         currency: "INR",
@@ -32,24 +29,45 @@ router.post("/payment/create-order", requireAuth, async (req, res): Promise<void
       });
       res.json({ id: order.id, amount: order.amount, currency: order.currency, keyId });
       return;
-    } catch {
-      // Fall through to mock
+    } catch (err) {
+      req.log.error({ err }, "Razorpay order creation failed, falling back to mock");
     }
   }
 
-  // Mock order for development
-  const mockOrderId = `rzp_mock_${Date.now()}`;
+  // Mock order for development / when no keys configured
   res.json({
-    id: mockOrderId,
+    id: `rzp_mock_${Date.now()}`,
     amount: Math.round(amount * 100),
     currency: "INR",
     keyId: null,
   });
 });
 
-// Verify payment (mock in dev)
+// Verify Razorpay payment signature
 router.post("/payment/verify", requireAuth, async (req, res): Promise<void> => {
-  // In dev without real keys, just return success
+  const { razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body ?? {};
+
+  // Mock mode — no real keys, just return success
+  if (!process.env.RAZORPAY_KEY_SECRET) {
+    res.json({ success: true });
+    return;
+  }
+
+  if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+    res.status(400).json({ error: "Missing payment verification fields" });
+    return;
+  }
+
+  const expected = createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+    .digest("hex");
+
+  if (expected !== razorpaySignature) {
+    req.log.warn({ razorpayOrderId, razorpayPaymentId }, "Payment signature mismatch");
+    res.status(400).json({ error: "Payment signature verification failed" });
+    return;
+  }
+
   res.json({ success: true });
 });
 

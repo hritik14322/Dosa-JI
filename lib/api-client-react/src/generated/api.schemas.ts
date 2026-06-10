@@ -134,6 +134,8 @@ export interface OrderInput {
   razorpayOrderId?: string | null;
   /** @nullable */
   razorpayPaymentId?: string | null;
+  /** @nullable */
+  razorpaySignature?: string | null;
 }
 
 export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];

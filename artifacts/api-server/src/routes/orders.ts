@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { createHmac } from "crypto";
 import { db, ordersTable, usersTable, couponsTable } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../lib/auth";
@@ -38,7 +39,24 @@ router.post("/orders", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { items, deliveryAddress, couponCode, razorpayOrderId, razorpayPaymentId } = parsed.data;
+  const { items, deliveryAddress, couponCode, razorpayOrderId, razorpayPaymentId, razorpaySignature } = parsed.data;
+
+  // Verify Razorpay signature when real keys are configured
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (keySecret && razorpayOrderId && !razorpayOrderId.startsWith("rzp_mock_")) {
+    if (!razorpayPaymentId || !razorpaySignature) {
+      res.status(400).json({ error: "Payment verification fields are missing" });
+      return;
+    }
+    const expected = createHmac("sha256", keySecret)
+      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+      .digest("hex");
+    if (expected !== razorpaySignature) {
+      req.log.warn({ razorpayOrderId }, "Order creation blocked: signature mismatch");
+      res.status(400).json({ error: "Payment signature verification failed" });
+      return;
+    }
+  }
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryCharge = 40;

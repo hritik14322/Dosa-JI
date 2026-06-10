@@ -844,6 +844,8 @@ components:
           type: ["string", "null"]
         razorpayPaymentId:
           type: ["string", "null"]
+        razorpaySignature:
+          type: ["string", "null"]
 
     Order:
       type: object

@@ -48,6 +48,33 @@ export default function Cart() {
     setCouponInput("");
   };
 
+  const placeOrder = (rzpOrderId: string, rzpPaymentId: string, rzpSignature?: string) => {
+    createOrderMutation.mutate({
+      data: {
+        items: items.map(i => ({
+          menuItemId: i.menuItemId,
+          name: i.name + (i.selectedSize ? ` (${i.selectedSize})` : ""),
+          price: i.price,
+          quantity: i.quantity,
+          imageUrl: i.imageUrl,
+        })),
+        deliveryAddress: address,
+        couponCode: couponCode ?? undefined,
+        razorpayOrderId: rzpOrderId,
+        razorpayPaymentId: rzpPaymentId,
+        razorpaySignature: rzpSignature ?? null,
+      }
+    }, {
+      onSuccess: (order) => {
+        clearCart();
+        setLocation(`/order-confirmation/${order.id}`);
+      },
+      onError: (err: any) => {
+        toast({ title: "Checkout failed", description: err.error || "An error occurred", variant: "destructive" });
+      }
+    });
+  };
+
   const handleCheckout = async () => {
     if (!isAuthenticated) {
       toast({ title: "Login required", description: "Please login to checkout" });
@@ -62,28 +89,52 @@ export default function Cart() {
 
     try {
       const paymentOrder = await createPaymentOrderMutation.mutateAsync({ data: { amount: total } });
-      const fakeRzpOrderId = paymentOrder.id || `rzp_mock_${Date.now()}`;
-      const fakePaymentId = `pay_mock_${Date.now()}`;
 
-      createOrderMutation.mutate({
-        data: {
-          items: items.map(i => ({ menuItemId: i.menuItemId, name: i.name + (i.selectedSize ? ` (${i.selectedSize})` : ""), price: i.price, quantity: i.quantity, imageUrl: i.imageUrl })),
-          deliveryAddress: address,
-          couponCode: couponCode ?? undefined,
-          razorpayOrderId: fakeRzpOrderId,
-          razorpayPaymentId: fakePaymentId
-        }
-      }, {
-        onSuccess: (order) => {
-          clearCart();
-          setLocation(`/order-confirmation/${order.id}`);
-        },
-        onError: (err: any) => {
-          toast({ title: "Checkout failed", description: err.error || "An error occurred", variant: "destructive" });
-        }
-      });
+      // ── Real Razorpay checkout ──────────────────────────────────────────────
+      if (paymentOrder.keyId) {
+        // Dynamically load the Razorpay checkout script
+        await new Promise<void>((resolve, reject) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if ((window as any).Razorpay) { resolve(); return; }
+          const s = document.createElement("script");
+          s.src = "https://checkout.razorpay.com/v1/checkout.js";
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error("Failed to load Razorpay SDK"));
+          document.body.appendChild(s);
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rzp = new (window as any).Razorpay({
+          key: paymentOrder.keyId,
+          amount: paymentOrder.amount,
+          currency: paymentOrder.currency ?? "INR",
+          order_id: paymentOrder.id,
+          name: "Dosa Ji",
+          description: `Order for ${address.name}`,
+          image: "/favicon.svg",
+          prefill: { name: address.name, contact: address.phone },
+          theme: { color: "#f59e0b" },
+          handler: (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
+            placeOrder(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
+          },
+        });
+
+        rzp.on("payment.failed", (response: any) => {
+          toast({
+            title: "Payment failed",
+            description: response?.error?.description || "Your payment could not be processed. Please try again.",
+            variant: "destructive",
+          });
+        });
+
+        rzp.open();
+        return; // Order is placed inside the handler callback above
+      }
+
+      // ── Mock / dev mode (no Razorpay keys set) ────────────────────────────
+      placeOrder(paymentOrder.id || `rzp_mock_${Date.now()}`, `pay_mock_${Date.now()}`);
     } catch (err: any) {
-      toast({ title: "Payment failed", description: err.error || "Failed to initiate payment", variant: "destructive" });
+      toast({ title: "Payment failed", description: err?.message || err?.error || "Failed to initiate payment", variant: "destructive" });
     }
   };
 

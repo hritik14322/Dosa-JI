@@ -732,6 +732,9 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        sizes:
+          type: string
+          nullable: true
         createdAt:
           type: string
 
@@ -757,6 +760,9 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        sizes:
+          type: string
+          nullable: true
 
     MenuItemUpdate:
       type: object
@@ -777,6 +783,9 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        sizes:
+          type: string
+          nullable: true
 
     AvailabilityUpdate:
       type: object

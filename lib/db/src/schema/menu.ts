@@ -12,6 +12,7 @@ export const menuItemsTable = pgTable("menu_items", {
   isVeg: boolean("is_veg").notNull().default(true),
   isAvailable: boolean("is_available").notNull().default(true),
   isFeatured: boolean("is_featured").notNull().default(false),
+  sizes: text("sizes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

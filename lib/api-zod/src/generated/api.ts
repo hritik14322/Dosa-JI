@@ -90,6 +90,7 @@ export const ListMenuItemsResponseItem = zod.object({
   "isVeg": zod.boolean(),
   "isAvailable": zod.boolean(),
   "isFeatured": zod.boolean(),
+  "sizes": zod.string().nullish(),
   "createdAt": zod.string()
 })
 export const ListMenuItemsResponse = zod.array(ListMenuItemsResponseItem)
@@ -112,7 +113,8 @@ export const CreateMenuItemBody = zod.object({
   "imageUrl": zod.string(),
   "isVeg": zod.boolean(),
   "isAvailable": zod.boolean().optional(),
-  "isFeatured": zod.boolean().optional()
+  "isFeatured": zod.boolean().optional(),
+  "sizes": zod.string().nullish()
 })
 
 
@@ -133,6 +135,7 @@ export const GetMenuItemResponse = zod.object({
   "isVeg": zod.boolean(),
   "isAvailable": zod.boolean(),
   "isFeatured": zod.boolean(),
+  "sizes": zod.string().nullish(),
   "createdAt": zod.string()
 })
 
@@ -152,7 +155,8 @@ export const UpdateMenuItemBody = zod.object({
   "imageUrl": zod.string().optional(),
   "isVeg": zod.boolean().optional(),
   "isAvailable": zod.boolean().optional(),
-  "isFeatured": zod.boolean().optional()
+  "isFeatured": zod.boolean().optional(),
+  "sizes": zod.string().nullish()
 })
 
 export const UpdateMenuItemResponse = zod.object({
@@ -165,6 +169,7 @@ export const UpdateMenuItemResponse = zod.object({
   "isVeg": zod.boolean(),
   "isAvailable": zod.boolean(),
   "isFeatured": zod.boolean(),
+  "sizes": zod.string().nullish(),
   "createdAt": zod.string()
 })
 
@@ -198,6 +203,7 @@ export const ToggleMenuItemAvailabilityResponse = zod.object({
   "isVeg": zod.boolean(),
   "isAvailable": zod.boolean(),
   "isFeatured": zod.boolean(),
+  "sizes": zod.string().nullish(),
   "createdAt": zod.string()
 })
 

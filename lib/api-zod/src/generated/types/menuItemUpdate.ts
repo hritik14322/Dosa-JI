@@ -15,4 +15,5 @@ export interface MenuItemUpdate {
   isVeg?: boolean;
   isAvailable?: boolean;
   isFeatured?: boolean;
+  sizes?: string | null;
 }

@@ -26,6 +26,7 @@ function serializeMenuItem(item: typeof menuItemsTable.$inferSelect) {
     isVeg: item.isVeg,
     isAvailable: item.isAvailable,
     isFeatured: item.isFeatured,
+    sizes: item.sizes ?? null,
     createdAt: item.createdAt.toISOString(),
   };
 }
@@ -67,6 +68,7 @@ router.post("/menu", requireRole("shopkeeper", "admin"), async (req, res): Promi
       isVeg: data.isVeg,
       isAvailable: data.isAvailable ?? true,
       isFeatured: data.isFeatured ?? false,
+      sizes: data.sizes ?? null,
     })
     .returning();
   res.status(201).json(serializeMenuItem(item));
@@ -107,6 +109,7 @@ router.put("/menu/:id", requireRole("shopkeeper", "admin"), async (req, res): Pr
   if (d.isVeg !== undefined) update.isVeg = d.isVeg;
   if (d.isAvailable !== undefined) update.isAvailable = d.isAvailable;
   if (d.isFeatured !== undefined) update.isFeatured = d.isFeatured;
+  if (d.sizes !== undefined) update.sizes = d.sizes;
 
   const [item] = await db.update(menuItemsTable).set(update).where(eq(menuItemsTable.id, idParsed.data.id)).returning();
   if (!item) {

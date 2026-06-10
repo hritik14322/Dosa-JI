@@ -73,6 +73,7 @@ export interface MenuItem {
   isVeg: boolean;
   isAvailable: boolean;
   isFeatured: boolean;
+  sizes?: string | null;
   createdAt: string;
 }
 
@@ -87,6 +88,7 @@ export interface MenuItemInput {
   isVeg: boolean;
   isAvailable?: boolean;
   isFeatured?: boolean;
+  sizes?: string | null;
 }
 
 export interface MenuItemUpdate {
@@ -98,6 +100,7 @@ export interface MenuItemUpdate {
   isVeg?: boolean;
   isAvailable?: boolean;
   isFeatured?: boolean;
+  sizes?: string | null;
 }
 
 export interface AvailabilityUpdate {

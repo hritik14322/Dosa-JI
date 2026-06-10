@@ -19,15 +19,9 @@ import Register from "@/pages/Register";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 
-// Shopkeeper full-page layout
+// Shopkeeper & Admin full-page layouts
 import ShopkeeperLayout from "@/layouts/ShopkeeperLayout";
-
-// Admin
-import AdminDashboard from "@/pages/admin/Dashboard";
-import AdminUsers from "@/pages/admin/Users";
-import AdminCoupons from "@/pages/admin/Coupons";
-import ShopkeeperMenu from "@/pages/shopkeeper/Menu";
-import ShopkeeperOrders from "@/pages/shopkeeper/Orders";
+import AdminLayout from "@/layouts/AdminLayout";
 
 const queryClient = new QueryClient();
 
@@ -56,13 +50,6 @@ function CustomerLayout() {
           <Route path="/orders"><ProtectedRoute component={Orders} allowedRoles={["customer"]} /></Route>
           <Route path="/profile"><ProtectedRoute component={Profile} /></Route>
 
-          {/* Admin Routes */}
-          <Route path="/admin"><ProtectedRoute component={AdminDashboard} allowedRoles={["admin"]} /></Route>
-          <Route path="/admin/users"><ProtectedRoute component={AdminUsers} allowedRoles={["admin"]} /></Route>
-          <Route path="/admin/coupons"><ProtectedRoute component={AdminCoupons} allowedRoles={["admin"]} /></Route>
-          <Route path="/admin/menu"><ProtectedRoute component={ShopkeeperMenu} allowedRoles={["admin"]} /></Route>
-          <Route path="/admin/orders"><ProtectedRoute component={ShopkeeperOrders} allowedRoles={["admin"]} /></Route>
-
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -80,10 +67,8 @@ function CustomerLayout() {
 function AppRouter() {
   const [location] = useLocation();
 
-  // Shopkeeper routes get their own full-page sidebar layout (no main navbar/footer)
-  if (location.startsWith("/shopkeeper")) {
-    return <ShopkeeperLayout />;
-  }
+  if (location.startsWith("/shopkeeper")) return <ShopkeeperLayout />;
+  if (location.startsWith("/admin")) return <AdminLayout />;
 
   return <CustomerLayout />;
 }

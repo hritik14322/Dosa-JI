@@ -45,11 +45,20 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/68" />
         <div className="relative z-10 flex flex-col items-center px-6">
           <img src={logoSrc} alt="Dosa Ji" className="h-20 w-20 object-contain mb-6 drop-shadow-2xl" />
-          <h1 className="text-6xl md:text-8xl font-bold font-serif text-amber-400 mb-4 drop-shadow-lg tracking-tight">
+          <h1
+            className="text-6xl md:text-8xl text-amber-400 drop-shadow-lg tracking-tight mb-1 leading-none"
+            style={{ fontFamily: "'Pirata One', cursive" }}
+          >
             Dosa Ji
           </h1>
+          {/* Swoosh underline */}
+          <svg viewBox="0 0 340 22" className="w-64 md:w-80 mt-1 mb-7" fill="none" aria-hidden="true">
+            <line x1="0" y1="8" x2="108" y2="8" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+            <path d="M112 8 C124 0,148 20,160 12 C172 4,196 22,212 8" stroke="#f59e0b" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+            <line x1="216" y1="8" x2="340" y2="8" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+          </svg>
           <p className="text-lg md:text-2xl text-white/80 italic mb-10 font-light">
-            "Karna hai chill toh Dosa Ji se mill"
+            " करना है Chill, तो Dosa Ji में मील "
           </p>
           {!isStaff && (
             <div className="flex gap-4 flex-wrap justify-center">

@@ -45,38 +45,9 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/68" />
         <div className="relative z-10 flex flex-col items-center px-6">
           <img src={logoSrc} alt="Dosa Ji" className="h-20 w-20 object-contain mb-6 drop-shadow-2xl" />
-          <h1
-            className="text-6xl md:text-8xl font-bold font-serif tracking-tight mb-1"
-            style={{
-              color: "#fff8ee",
-              textShadow:
-                "0 0 6px #fff, 0 0 14px #fff, 0 0 28px #f59e0b, 0 0 52px #f59e0b, 0 0 80px #d97706, 0 0 120px #b45309",
-            }}
-          >
+          <h1 className="text-6xl md:text-8xl font-bold font-serif text-amber-400 mb-4 drop-shadow-lg tracking-tight">
             Dosa Ji
           </h1>
-          {/* Neon swoosh decoration */}
-          <svg
-            viewBox="0 0 320 28"
-            className="w-64 md:w-80 mb-8"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <line x1="0" y1="10" x2="105" y2="10" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
-            <path
-              d="M 108 10 C 120 2, 150 22, 160 14 C 170 6, 200 26, 212 10"
-              stroke="#f59e0b"
-              strokeWidth="2.5"
-              fill="none"
-              strokeLinecap="round"
-            />
-            <line x1="215" y1="10" x2="320" y2="10" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-              <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-          </svg>
           <p className="text-lg md:text-2xl text-white/80 italic mb-10 font-light">
             "Karna hai chill toh Dosa Ji se mill"
           </p>

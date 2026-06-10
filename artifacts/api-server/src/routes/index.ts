@@ -7,6 +7,7 @@ import paymentRouter from "./payment";
 import couponsRouter from "./coupons";
 import usersRouter from "./users";
 import dashboardRouter from "./dashboard";
+import uploadRouter from "./upload";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(paymentRouter);
 router.use(couponsRouter);
 router.use(usersRouter);
 router.use(dashboardRouter);
+router.use(uploadRouter);
 
 export default router;

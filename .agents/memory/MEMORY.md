@@ -1,0 +1,1 @@
+- [Zod coerce boolean gotcha](zod-coerce-boolean.md) — never use z.coerce.boolean() for query string params; parse "true"/"false" strings manually instead.

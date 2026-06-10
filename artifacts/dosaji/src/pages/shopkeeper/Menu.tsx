@@ -16,7 +16,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2, Plus, ChevronDown, Tag, X } from "lucide-react";
+import { Pencil, Trash2, Plus, ChevronDown, Tag, X, Upload, Link, ImageIcon } from "lucide-react";
+
+interface SizeRow { name: string; price: string }
 
 interface MenuFormData {
   name: string;
@@ -26,7 +28,7 @@ interface MenuFormData {
   imageUrl: string;
   isVeg: boolean;
   isAvailable: boolean;
-  sizes: string;
+  sizeRows: SizeRow[];
 }
 
 const emptyForm: MenuFormData = {
@@ -37,17 +39,22 @@ const emptyForm: MenuFormData = {
   imageUrl: "",
   isVeg: true,
   isAvailable: true,
-  sizes: "",
+  sizeRows: [],
 };
 
 const DEFAULT_CATEGORIES = ["Dosa", "Pizza", "Burger", "Rolls", "Beverages"];
 
-const SIZES_PRESETS = [
-  { label: "Small, Medium, Large", value: "Small,Medium,Large" },
-  { label: "Half, Full", value: "Half,Full" },
-  { label: "Regular, Large", value: "Regular,Large" },
-  { label: "Mini, Regular, Large", value: "Mini,Regular,Large" },
-];
+function sizesToString(rows: SizeRow[]): string {
+  return rows.filter(r => r.name.trim()).map(r => `${r.name.trim()}:${r.price || "0"}`).join(",");
+}
+
+function parseSizesString(s: string | null | undefined): SizeRow[] {
+  if (!s) return [];
+  return s.split(",").map(part => {
+    const [name, price = ""] = part.split(":");
+    return { name: name.trim(), price: price.trim() };
+  });
+}
 
 function CategoryCombobox({ value, onChange, categories }: {
   value: string;
@@ -99,6 +106,112 @@ function CategoryCombobox({ value, onChange, categories }: {
   );
 }
 
+function ImageInput({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [tab, setTab] = useState<"url" | "upload">("url");
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        onChange(data.url);
+      } else {
+        alert(data.error || "Upload failed");
+      }
+    } catch {
+      alert("Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-lg w-fit">
+        <button
+          type="button"
+          onClick={() => setTab("url")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            tab === "url" ? "bg-white shadow text-gray-800" : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <Link className="w-3.5 h-3.5" /> URL
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("upload")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+            tab === "upload" ? "bg-white shadow text-gray-800" : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <Upload className="w-3.5 h-3.5" /> Upload
+        </button>
+      </div>
+
+      {tab === "url" ? (
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://example.com/image.jpg"
+        />
+      ) : (
+        <div
+          onClick={() => fileRef.current?.click()}
+          className="border-2 border-dashed border-amber-200 rounded-xl p-6 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50/50 transition-colors"
+        >
+          {uploading ? (
+            <div className="flex items-center justify-center gap-2 text-amber-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500" />
+              <span className="text-sm">Uploading…</span>
+            </div>
+          ) : value ? (
+            <div className="flex flex-col items-center gap-2">
+              <img src={value} alt="preview" className="h-20 object-contain rounded-lg" />
+              <span className="text-xs text-green-600 font-medium">✓ Uploaded — click to replace</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-gray-400">
+              <ImageIcon className="w-8 h-8" />
+              <span className="text-sm">Click to upload (max 5 MB)</span>
+              <span className="text-xs">JPG, PNG, WebP, GIF</span>
+            </div>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+      )}
+
+      {value && (
+        <div className="flex items-center gap-2">
+          <img src={value} alt="preview" className="w-10 h-10 rounded-lg object-cover border" />
+          <span className="text-xs text-gray-500 truncate flex-1">{value}</span>
+          <button type="button" onClick={() => onChange("")} className="text-gray-400 hover:text-red-500">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ShopkeeperMenu() {
   const { data: menuItems, isLoading } = useListMenuItems();
   const toggleMutation = useToggleMenuItemAvailability();
@@ -118,7 +231,6 @@ export default function ShopkeeperMenu() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getListMenuItemsQueryKey() });
 
-  // Derive unique categories with item counts
   const categoryStats = (menuItems ?? []).reduce<Record<string, number>>((acc, item) => {
     acc[item.category] = (acc[item.category] ?? 0) + 1;
     return acc;
@@ -147,7 +259,7 @@ export default function ShopkeeperMenu() {
       imageUrl: item.imageUrl || "",
       isVeg: item.isVeg,
       isAvailable: item.isAvailable,
-      sizes: item.sizes || "",
+      sizeRows: parseSizesString(item.sizes),
     });
     setDialogOpen(true);
   };
@@ -159,6 +271,8 @@ export default function ShopkeeperMenu() {
       return;
     }
 
+    const sizesStr = sizesToString(form.sizeRows);
+
     const payload = {
       name: form.name,
       description: form.description,
@@ -167,7 +281,7 @@ export default function ShopkeeperMenu() {
       imageUrl: form.imageUrl || "",
       isVeg: form.isVeg,
       isAvailable: form.isAvailable,
-      sizes: form.sizes.trim() || null,
+      sizes: sizesStr || null,
     };
 
     if (editId !== null) {
@@ -211,6 +325,12 @@ export default function ShopkeeperMenu() {
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
+  const addSizeRow = () => setForm(f => ({ ...f, sizeRows: [...f.sizeRows, { name: "", price: "" }] }));
+  const removeSizeRow = (idx: number) => setForm(f => ({ ...f, sizeRows: f.sizeRows.filter((_, i) => i !== idx) }));
+  const updateSizeRow = (idx: number, field: keyof SizeRow, value: string) => {
+    setForm(f => ({ ...f, sizeRows: f.sizeRows.map((r, i) => i === idx ? { ...r, [field]: value } : r) }));
+  };
+
   if (isLoading) {
     return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" /></div>;
   }
@@ -234,7 +354,6 @@ export default function ShopkeeperMenu() {
         </div>
       </div>
 
-      {/* Category management panel */}
       {showCategories && (
         <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-5 mb-6">
           <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4">All Categories</h2>
@@ -243,17 +362,10 @@ export default function ShopkeeperMenu() {
           ) : (
             <div className="flex flex-wrap gap-2">
               {existingCategories.sort().map((cat) => (
-                <div
-                  key={cat}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200"
-                >
+                <div key={cat} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200">
                   <span className="text-sm font-medium text-amber-800">{cat}</span>
                   <span className="text-xs text-amber-500">{categoryStats[cat]} item{categoryStats[cat] !== 1 ? "s" : ""}</span>
-                  <button
-                    onClick={() => setDeleteCategoryName(cat)}
-                    className="text-gray-400 hover:text-red-500 transition-colors ml-1"
-                    title={`Delete all items in "${cat}"`}
-                  >
+                  <button onClick={() => setDeleteCategoryName(cat)} className="text-gray-400 hover:text-red-500 transition-colors ml-1" title={`Delete all items in "${cat}"`}>
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -264,7 +376,6 @@ export default function ShopkeeperMenu() {
         </div>
       )}
 
-      {/* Menu items table */}
       <div className="bg-white rounded-2xl border border-amber-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -272,76 +383,70 @@ export default function ShopkeeperMenu() {
               <tr className="border-b border-gray-100">
                 <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">Item</th>
                 <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">Category</th>
-                <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">Sizes</th>
+                <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400">Sizes & Prices</th>
                 <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400 text-center">Type</th>
-                <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400 text-right">Price</th>
+                <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400 text-right">Base Price</th>
                 <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400 text-center">Available</th>
                 <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-gray-400 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {menuItems?.map((item) => (
-                <tr key={item.id} className="hover:bg-amber-50/30 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-2xl">
-                        {item.imageUrl
-                          ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                          : "🍽️"
-                        }
+              {menuItems?.map((item) => {
+                const sizes = parseSizesString(item.sizes);
+                return (
+                  <tr key={item.id} className="hover:bg-amber-50/30 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-2xl">
+                          {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" /> : "🍽️"}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900 text-sm">{item.name}</div>
+                          <div className="text-xs text-gray-400 line-clamp-1 max-w-[180px]">{item.description}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-semibold text-gray-900 text-sm">{item.name}</div>
-                        <div className="text-xs text-gray-400 line-clamp-1 max-w-[180px]">{item.description}</div>
+                    </td>
+                    <td className="px-5 py-4 text-sm text-gray-500">{item.category}</td>
+                    <td className="px-5 py-4">
+                      {sizes.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {sizes.map((s) => (
+                            <span key={s.name} className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-600 font-medium whitespace-nowrap">
+                              {s.name}{s.price && s.price !== "0" ? ` ₹${s.price}` : ""}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-300">—</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <div className="inline-block p-1 bg-white rounded-sm shadow-sm border mx-auto">
+                        <div className={`w-3 h-3 border-2 flex items-center justify-center ${item.isVeg ? "border-green-600" : "border-red-600"}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${item.isVeg ? "bg-green-600" : "bg-red-600"}`} />
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-sm text-gray-500">{item.category}</td>
-                  <td className="px-5 py-4">
-                    {item.sizes ? (
-                      <div className="flex flex-wrap gap-1">
-                        {item.sizes.split(",").map((s) => s.trim()).filter(Boolean).map((s) => (
-                          <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-600 font-medium">
-                            {s}
-                          </span>
-                        ))}
+                    </td>
+                    <td className="px-5 py-4 text-right font-semibold text-amber-600">₹{item.price}</td>
+                    <td className="px-5 py-4 text-center">
+                      <Switch checked={item.isAvailable} onCheckedChange={() => handleToggle(item.id, item.isAvailable)} disabled={toggleMutation.isPending} />
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(item)} className="h-8 w-8 text-gray-400 hover:text-amber-600 hover:bg-amber-50">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(item.id)} className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
-                    ) : (
-                      <span className="text-xs text-gray-300">—</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    <div className="inline-block p-1 bg-white rounded-sm shadow-sm border mx-auto">
-                      <div className={`w-3 h-3 border-2 flex items-center justify-center ${item.isVeg ? "border-green-600" : "border-red-600"}`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${item.isVeg ? "bg-green-600" : "bg-red-600"}`} />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-right font-semibold text-amber-600">₹{item.price}</td>
-                  <td className="px-5 py-4 text-center">
-                    <Switch
-                      checked={item.isAvailable}
-                      onCheckedChange={() => handleToggle(item.id, item.isAvailable)}
-                      disabled={toggleMutation.isPending}
-                    />
-                  </td>
-                  <td className="px-5 py-4 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(item)} className="h-8 w-8 text-gray-400 hover:text-amber-600 hover:bg-amber-50">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(item.id)} className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
               {menuItems?.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-gray-400">
-                    No menu items yet. Click "Add Item" to get started.
-                  </td>
+                  <td colSpan={7} className="px-5 py-12 text-center text-gray-400">No menu items yet. Click "Add Item" to get started.</td>
                 </tr>
               )}
             </tbody>
@@ -351,73 +456,76 @@ export default function ShopkeeperMenu() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg bg-[#faf8f5]">
+        <DialogContent className="max-w-lg bg-[#faf8f5] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editId !== null ? "Edit Menu Item" : "Add Menu Item"}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="item-name">Name *</Label>
-              <Input id="item-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Masala Dosa" />
+              <Label>Name *</Label>
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Masala Dosa" />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="item-desc">Description</Label>
-              <Textarea id="item-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Short description of the item" rows={2} />
+              <Label>Description</Label>
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Short description of the item" rows={2} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="item-price">Price (₹) *</Label>
-                <Input id="item-price" type="number" min="1" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="99" />
+                <Label>Base Price (₹) *</Label>
+                <Input type="number" min="1" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="99" />
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
-                <CategoryCombobox
-                  value={form.category}
-                  onChange={(v) => setForm({ ...form, category: v })}
-                  categories={existingCategories}
-                />
+                <CategoryCombobox value={form.category} onChange={(v) => setForm({ ...form, category: v })} categories={existingCategories} />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="item-image">Image URL</Label>
-              <Input id="item-image" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
+              <Label>Image</Label>
+              <ImageInput value={form.imageUrl} onChange={(url) => setForm({ ...form, imageUrl: url })} />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="item-sizes">
-                Size Options <span className="text-gray-400 font-normal">(comma-separated)</span>
-              </Label>
-              <Input
-                id="item-sizes"
-                value={form.sizes}
-                onChange={(e) => setForm({ ...form, sizes: e.target.value })}
-                placeholder="e.g. Small, Medium, Large"
-              />
-              <div className="flex flex-wrap gap-1.5">
-                {SIZES_PRESETS.map((p) => (
-                  <button
-                    key={p.value}
-                    type="button"
-                    onClick={() => setForm({ ...form, sizes: p.value })}
-                    className="text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"
-                  >
-                    {p.label}
-                  </button>
-                ))}
-                {form.sizes && (
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, sizes: "" })}
-                    className="text-[11px] px-2.5 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-500 hover:bg-gray-200 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
+              <div className="flex items-center justify-between">
+                <Label>Size Options</Label>
+                <button type="button" onClick={addSizeRow} className="text-xs text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1">
+                  <Plus className="w-3.5 h-3.5" /> Add Size
+                </button>
               </div>
+              {form.sizeRows.length === 0 ? (
+                <p className="text-xs text-gray-400 py-1">No sizes — item sold at base price only. Click "Add Size" to offer multiple sizes.</p>
+              ) : (
+                <div className="space-y-2">
+                  {form.sizeRows.map((row, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <Input
+                        placeholder="Size name (e.g. Small)"
+                        value={row.name}
+                        onChange={(e) => updateSizeRow(idx, "name", e.target.value)}
+                        className="flex-1"
+                      />
+                      <div className="relative w-28 flex-shrink-0">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder="Price"
+                          value={row.price}
+                          onChange={(e) => updateSizeRow(idx, "price", e.target.value)}
+                          className="pl-7"
+                        />
+                      </div>
+                      <button type="button" onClick={() => removeSizeRow(idx)} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex gap-6 pt-1">
@@ -445,7 +553,6 @@ export default function ShopkeeperMenu() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete single item */}
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -461,7 +568,6 @@ export default function ShopkeeperMenu() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete entire category */}
       <AlertDialog open={deleteCategoryName !== null} onOpenChange={(open) => { if (!open) setDeleteCategoryName(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -474,11 +580,7 @@ export default function ShopkeeperMenu() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deletingCategory}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteCategory}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deletingCategory}
-            >
+            <AlertDialogAction onClick={handleDeleteCategory} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deletingCategory}>
               {deletingCategory ? "Deleting…" : "Delete All Items"}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -2,17 +2,22 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 export interface CartItem {
   menuItemId: number;
+  selectedSize?: string;
   name: string;
   price: number;
   quantity: number;
   imageUrl: string;
 }
 
+function cartKey(menuItemId: number, selectedSize?: string) {
+  return `${menuItemId}:${selectedSize ?? ""}`;
+}
+
 interface CartContextType {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (menuItemId: number) => void;
-  updateQty: (menuItemId: number, quantity: number) => void;
+  removeItem: (menuItemId: number, selectedSize?: string) => void;
+  updateQty: (menuItemId: number, quantity: number, selectedSize?: string) => void;
   clearCart: () => void;
   cartTotal: number;
   cartCount: number;
@@ -21,8 +26,6 @@ interface CartContextType {
   couponCode: string | null;
   couponDiscount: number;
   setCoupon: (code: string | null, discount: number) => void;
-  setCouponCode: (code: string | null) => void;
-  setCouponDiscount: (discount: number) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -37,19 +40,35 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   });
 
-  const [couponCode, setCouponCode] = useState<string | null>(null);
-  const [couponDiscount, setCouponDiscount] = useState<number>(0);
+  const [couponCode, setCouponCodeState] = useState<string | null>(() => {
+    return localStorage.getItem("couponCode") || null;
+  });
+  const [couponDiscount, setCouponDiscountState] = useState<number>(() => {
+    const stored = localStorage.getItem("couponDiscount");
+    return stored ? parseFloat(stored) : 0;
+  });
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
   }, [items]);
 
+  useEffect(() => {
+    if (couponCode) {
+      localStorage.setItem("couponCode", couponCode);
+      localStorage.setItem("couponDiscount", String(couponDiscount));
+    } else {
+      localStorage.removeItem("couponCode");
+      localStorage.removeItem("couponDiscount");
+    }
+  }, [couponCode, couponDiscount]);
+
   const addItem = (item: Omit<CartItem, "quantity">) => {
+    const key = cartKey(item.menuItemId, item.selectedSize);
     setItems((prev) => {
-      const existing = prev.find((i) => i.menuItemId === item.menuItemId);
+      const existing = prev.find((i) => cartKey(i.menuItemId, i.selectedSize) === key);
       if (existing) {
         return prev.map((i) =>
-          i.menuItemId === item.menuItemId
+          cartKey(i.menuItemId, i.selectedSize) === key
             ? { ...i, quantity: i.quantity + 1 }
             : i
         );
@@ -58,36 +77,37 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeItem = (menuItemId: number) => {
-    setItems((prev) => prev.filter((i) => i.menuItemId !== menuItemId));
+  const removeItem = (menuItemId: number, selectedSize?: string) => {
+    const key = cartKey(menuItemId, selectedSize);
+    setItems((prev) => prev.filter((i) => cartKey(i.menuItemId, i.selectedSize) !== key));
   };
 
-  const updateQty = (menuItemId: number, quantity: number) => {
+  const updateQty = (menuItemId: number, quantity: number, selectedSize?: string) => {
+    const key = cartKey(menuItemId, selectedSize);
     if (quantity <= 0) {
-      removeItem(menuItemId);
+      removeItem(menuItemId, selectedSize);
       return;
     }
     setItems((prev) =>
       prev.map((i) =>
-        i.menuItemId === menuItemId ? { ...i, quantity } : i
+        cartKey(i.menuItemId, i.selectedSize) === key ? { ...i, quantity } : i
       )
     );
   };
 
   const clearCart = () => {
     setItems([]);
-    setCouponCode(null);
-    setCouponDiscount(0);
+    setCouponCodeState(null);
+    setCouponDiscountState(0);
   };
 
   const setCoupon = (code: string | null, discount: number) => {
-    setCouponCode(code);
-    setCouponDiscount(discount);
+    setCouponCodeState(code);
+    setCouponDiscountState(discount);
   };
 
   const cartTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartCount = items.reduce((count, item) => count + item.quantity, 0);
-
   const subtotal = cartTotal;
   const total = Math.max(0, subtotal + 40 + subtotal * 0.05 - couponDiscount);
 
@@ -106,8 +126,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         couponCode,
         couponDiscount,
         setCoupon,
-        setCouponCode,
-        setCouponDiscount,
       }}
     >
       {children}

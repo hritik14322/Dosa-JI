@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "b-PUvi_XUyjc-aXQFRxc3"
@@ -198,3 +197,9 @@ id = "kRmTJBAUciFnYoFviGdq4"
 uri = "file://artifacts/mockup-sandbox/public/images/dosa-masala.png"
 type = "image"
 title = "generated_image"
+
+[[outputs]]
+id = "RXqyn58m7E373r7WZyeS_"
+uri = "file://dosaji-production.tar.gz"
+type = "unspecified"
+title = "Dosa Ji — Production Package (Hostinger)"

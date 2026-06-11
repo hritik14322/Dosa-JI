@@ -25,7 +25,7 @@ if (Number.isNaN(port) || port <= 0) {
   process.exit(1);
 }
 
-app.listen(port, (err?: Error) => {
+app.listen(port, "0.0.0.0", (err?: Error) => {
   if (err) {
     console.error("[startup] Failed to listen:", err.message);
     process.exit(1);

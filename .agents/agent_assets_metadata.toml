@@ -209,3 +209,9 @@ id = "IIVjBazrY_SqdPdVFqMck"
 uri = "file://dosaji-production.zip"
 type = "unspecified"
 title = "Dosa Ji — Production Package v3 (route fix)"
+
+[[outputs]]
+id = "PmoBlg7lFHN1bNIKeR1Ye"
+uri = "file://index-fix.zip"
+type = "unspecified"
+title = "Fixed index.mjs (extract and upload to Hostinger)"

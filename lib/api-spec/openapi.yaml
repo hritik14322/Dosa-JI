@@ -16,6 +16,7 @@ tags:
   - name: coupons
   - name: dashboard
   - name: payment
+  - name: settings
 
 paths:
   /healthz:
@@ -591,6 +592,42 @@ paths:
 
   # ── DASHBOARD ────────────────────────────────────────────────────────────────
 
+  # ── SETTINGS ────────────────────────────────────────────────────────────────
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get restaurant settings
+      responses:
+        "200":
+          description: Restaurant settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantSettings"
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update restaurant settings (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestaurantSettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantSettings"
+        "403":
+          description: Forbidden
+
   /dashboard/stats:
     get:
       operationId: getDashboardStats
@@ -1029,6 +1066,48 @@ components:
       properties:
         isActive:
           type: boolean
+
+    # ── SETTINGS ──────────────────────────────────────────────────────────────
+
+    RestaurantSettings:
+      type: object
+      required: [id, restaurantName, tagline, address, phone, deliveryCharge, gstPercent, freeDeliveryAbove]
+      properties:
+        id:
+          type: integer
+        restaurantName:
+          type: string
+        tagline:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        deliveryCharge:
+          type: number
+        gstPercent:
+          type: number
+        freeDeliveryAbove:
+          type: number
+
+    RestaurantSettingsInput:
+      type: object
+      required: [restaurantName, tagline, address, phone, deliveryCharge, gstPercent, freeDeliveryAbove]
+      properties:
+        restaurantName:
+          type: string
+        tagline:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        deliveryCharge:
+          type: number
+        gstPercent:
+          type: number
+        freeDeliveryAbove:
+          type: number
 
     # ── DASHBOARD ─────────────────────────────────────────────────────────────
 

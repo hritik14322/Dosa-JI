@@ -1,25 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useGetSettings, useUpdateSettings } from "@workspace/api-client-react";
+import { Loader2 } from "lucide-react";
 
 export default function AdminSettings() {
   const { toast } = useToast();
+  const { data: settings, isLoading } = useGetSettings();
+  const updateMutation = useUpdateSettings();
+
   const [form, setForm] = useState({
-    restaurantName: "Dosa Ji",
-    tagline: "Delicious Fast Food",
-    address: "123 Food Street, Foodie City",
-    phone: "+91 95071 07204",
-    deliveryCharge: "30",
-    gstPercent: "5",
-    freeDeliveryAbove: "299",
+    restaurantName: "",
+    tagline: "",
+    address: "",
+    phone: "",
+    deliveryCharge: "",
+    gstPercent: "",
+    freeDeliveryAbove: "",
   });
+
+  useEffect(() => {
+    if (settings) {
+      setForm({
+        restaurantName: settings.restaurantName,
+        tagline: settings.tagline,
+        address: settings.address,
+        phone: settings.phone,
+        deliveryCharge: String(settings.deliveryCharge),
+        gstPercent: String(settings.gstPercent),
+        freeDeliveryAbove: String(settings.freeDeliveryAbove),
+      });
+    }
+  }, [settings]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: "Settings saved", description: "Restaurant settings updated successfully." });
+    updateMutation.mutate({
+      data: {
+        restaurantName: form.restaurantName,
+        tagline: form.tagline,
+        address: form.address,
+        phone: form.phone,
+        deliveryCharge: parseFloat(form.deliveryCharge) || 0,
+        gstPercent: parseFloat(form.gstPercent) || 0,
+        freeDeliveryAbove: parseFloat(form.freeDeliveryAbove) || 0,
+      },
+    }, {
+      onSuccess: () => {
+        toast({ title: "Settings saved ✓", description: "Restaurant settings updated successfully." });
+      },
+      onError: (err: any) => {
+        toast({ title: "Save failed", description: err?.error || "Could not update settings.", variant: "destructive" });
+      },
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl">
@@ -64,8 +108,14 @@ export default function AdminSettings() {
         </div>
 
         <div className="pt-2">
-          <Button type="submit" className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-8">
-            Save Settings
+          <Button
+            type="submit"
+            className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-8"
+            disabled={updateMutation.isPending}
+          >
+            {updateMutation.isPending ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving…</>
+            ) : "Save Settings"}
           </Button>
         </div>
       </form>

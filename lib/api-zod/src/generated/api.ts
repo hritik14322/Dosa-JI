@@ -594,6 +594,46 @@ export const UpdateUserStatusResponse = zod.object({
 
 
 /**
+ * @summary Get restaurant settings
+ */
+export const GetSettingsResponse = zod.object({
+  "id": zod.number(),
+  "restaurantName": zod.string(),
+  "tagline": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "deliveryCharge": zod.number(),
+  "gstPercent": zod.number(),
+  "freeDeliveryAbove": zod.number()
+})
+
+
+/**
+ * @summary Update restaurant settings (admin only)
+ */
+export const UpdateSettingsBody = zod.object({
+  "restaurantName": zod.string(),
+  "tagline": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "deliveryCharge": zod.number(),
+  "gstPercent": zod.number(),
+  "freeDeliveryAbove": zod.number()
+})
+
+export const UpdateSettingsResponse = zod.object({
+  "id": zod.number(),
+  "restaurantName": zod.string(),
+  "tagline": zod.string(),
+  "address": zod.string(),
+  "phone": zod.string(),
+  "deliveryCharge": zod.number(),
+  "gstPercent": zod.number(),
+  "freeDeliveryAbove": zod.number()
+})
+
+
+/**
  * @summary Get dashboard stats (shopkeeper/admin)
  */
 export const GetDashboardStatsResponse = zod.object({

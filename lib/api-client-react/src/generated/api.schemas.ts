@@ -291,6 +291,27 @@ export interface UserStatusUpdate {
   isActive: boolean;
 }
 
+export interface RestaurantSettings {
+  id: number;
+  restaurantName: string;
+  tagline: string;
+  address: string;
+  phone: string;
+  deliveryCharge: number;
+  gstPercent: number;
+  freeDeliveryAbove: number;
+}
+
+export interface RestaurantSettingsInput {
+  restaurantName: string;
+  tagline: string;
+  address: string;
+  phone: string;
+  deliveryCharge: number;
+  gstPercent: number;
+  freeDeliveryAbove: number;
+}
+
 export interface DashboardStats {
   totalMenuItems: number;
   todayOrders: number;

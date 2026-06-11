@@ -38,6 +38,8 @@ export * from './paymentOrderResponse';
 export * from './paymentVerifyInput';
 export * from './registerInput';
 export * from './registerInputRole';
+export * from './restaurantSettings';
+export * from './restaurantSettingsInput';
 export * from './revenueDataPoint';
 export * from './user';
 export * from './userRole';

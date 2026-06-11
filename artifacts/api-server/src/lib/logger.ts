@@ -1,29 +1,20 @@
-import pino from "pino";
+import type { Logger } from "pino";
 
-const isProduction = process.env["NODE_ENV"] === "production";
-
-const consoleLogger = {
-  level: process.env["LOG_LEVEL"] ?? "info",
-  info: (obj: unknown, msg?: string) => console.log("[INFO]", msg ?? obj, typeof obj === "object" ? obj : ""),
-  error: (obj: unknown, msg?: string) => console.error("[ERROR]", msg ?? obj, typeof obj === "object" ? obj : ""),
-  warn: (obj: unknown, msg?: string) => console.warn("[WARN]", msg ?? obj, typeof obj === "object" ? obj : ""),
-  debug: (obj: unknown, msg?: string) => console.log("[DEBUG]", msg ?? obj, typeof obj === "object" ? obj : ""),
-  trace: (obj: unknown, msg?: string) => console.log("[TRACE]", msg ?? obj, typeof obj === "object" ? obj : ""),
-  fatal: (obj: unknown, msg?: string) => console.error("[FATAL]", msg ?? obj, typeof obj === "object" ? obj : ""),
-  child: () => consoleLogger,
+const _logger = {
+  level: "info",
+  info: (obj: unknown, msg?: string) =>
+    console.log("[INFO]", msg ?? "", typeof obj === "object" && obj !== null ? JSON.stringify(obj) : obj ?? ""),
+  error: (obj: unknown, msg?: string) =>
+    console.error("[ERROR]", msg ?? "", typeof obj === "object" && obj !== null ? JSON.stringify(obj) : obj ?? ""),
+  warn: (obj: unknown, msg?: string) =>
+    console.warn("[WARN]", msg ?? "", typeof obj === "object" && obj !== null ? JSON.stringify(obj) : obj ?? ""),
+  debug: (obj: unknown, msg?: string) =>
+    console.log("[DEBUG]", msg ?? "", typeof obj === "object" && obj !== null ? JSON.stringify(obj) : obj ?? ""),
+  trace: (obj: unknown, msg?: string) =>
+    console.log("[TRACE]", msg ?? "", typeof obj === "object" && obj !== null ? JSON.stringify(obj) : obj ?? ""),
+  fatal: (obj: unknown, msg?: string) =>
+    console.error("[FATAL]", msg ?? "", typeof obj === "object" && obj !== null ? JSON.stringify(obj) : obj ?? ""),
+  child: (_bindings: Record<string, unknown>) => _logger,
 };
 
-export const logger = isProduction
-  ? (consoleLogger as unknown as pino.Logger)
-  : pino({
-      level: process.env["LOG_LEVEL"] ?? "info",
-      redact: [
-        "req.headers.authorization",
-        "req.headers.cookie",
-        "res.headers['set-cookie']",
-      ],
-      transport: {
-        target: "pino-pretty",
-        options: { colorize: true },
-      },
-    });
+export const logger = _logger as unknown as Logger;

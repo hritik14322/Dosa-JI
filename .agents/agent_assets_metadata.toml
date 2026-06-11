@@ -215,3 +215,9 @@ id = "PmoBlg7lFHN1bNIKeR1Ye"
 uri = "file://index-fix.zip"
 type = "unspecified"
 title = "Fixed index.mjs (extract and upload to Hostinger)"
+
+[[outputs]]
+id = "YAInRJId3yCFv8bky5626"
+uri = "file://dosaji-test.zip"
+type = "unspecified"
+title = "Minimal Test App (1.2 KB)"

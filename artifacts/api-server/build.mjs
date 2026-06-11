@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
-import { rm } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 
 globalThis.require = createRequire(import.meta.url);
 
@@ -83,46 +83,47 @@ const external = [
   "electron",
 ];
 
-const banner = {
-  js: `import { createRequire as __bannerCrReq } from 'node:module';
-import __bannerPath from 'node:path';
-import __bannerUrl from 'node:url';
-
-globalThis.require = __bannerCrReq(import.meta.url);
-globalThis.__filename = __bannerUrl.fileURLToPath(import.meta.url);
-globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
-`,
-};
-
-const commonOptions = {
+// CJS builds — no banner needed, no ESM import-hoisting complexity
+const cjsOptions = {
   platform: "node",
   bundle: true,
-  format: "esm",
+  format: "cjs",
   outdir: path.resolve(artifactDir, "dist"),
-  outExtension: { ".js": ".mjs" },
+  outExtension: { ".js": ".cjs" },
   logLevel: "info",
   sourcemap: "linked",
   external,
-  banner,
 };
 
 async function buildAll() {
   const distDir = path.resolve(artifactDir, "dist");
   await rm(distDir, { recursive: true, force: true });
 
-  // Build 1: Full Express app bundle (loaded dynamically after server starts)
+  // Build 1: Full Express app (CJS) — loaded by bootstrap via require()
   await esbuild({
-    ...commonOptions,
-    entryPoints: [{ in: path.resolve(artifactDir, "src/app-entry.ts"), out: "app-bundle" }],
+    ...cjsOptions,
+    entryPoints: [{ in: path.resolve(artifactDir, "src/app-entry.ts"), out: "app" }],
   });
 
-  // Build 2: Tiny bootstrap — starts HTTP server immediately, then loads app-bundle.mjs
-  // app-bundle.mjs is external so it's NOT inlined here
+  // Build 2: Bootstrap (CJS) — starts HTTP server immediately, then requires app.cjs
   await esbuild({
-    ...commonOptions,
-    entryPoints: [{ in: path.resolve(artifactDir, "src/index.ts"), out: "index" }],
-    external: [...external, "./app-bundle.mjs"],
+    ...cjsOptions,
+    entryPoints: [{ in: path.resolve(artifactDir, "src/bootstrap.ts"), out: "bootstrap" }],
   });
+
+  // Write dist/index.mjs manually — tiny 8-line ESM shim, NO esbuild banner
+  // Hostinger's startup file is dist/index.mjs; this shim just delegates to bootstrap.cjs
+  const indexMjs = `// ESM entry shim — delegates to CJS bootstrap immediately
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
+require('./bootstrap.cjs');
+`;
+  await writeFile(path.resolve(distDir, "index.mjs"), indexMjs, "utf8");
+  console.log("  dist/index.mjs  written (ESM shim, no banner)");
 }
 
 buildAll().catch((err) => {

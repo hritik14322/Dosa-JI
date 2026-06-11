@@ -20,12 +20,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+// __dirname in the CJS bundle = the directory containing app.cjs (artifacts/api-server/dist/)
+// Frontend is copied there during build: artifacts/api-server/dist/public/
+const serverDir: string = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+
+app.use("/api/uploads", express.static(path.join(serverDir, "public", "uploads")));
 app.use("/api", router);
 
 // In production, serve the built React frontend and handle SPA routing
 if (process.env["NODE_ENV"] === "production") {
-  const clientDir = path.join(process.cwd(), "public");
+  const clientDir = path.join(serverDir, "public");
   if (existsSync(clientDir)) {
     app.use(express.static(clientDir));
     app.get("/{*splat}", (_req, res) => {

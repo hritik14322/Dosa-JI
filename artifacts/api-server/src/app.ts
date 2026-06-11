@@ -39,7 +39,7 @@ if (process.env["NODE_ENV"] === "production") {
   const clientDir = path.join(process.cwd(), "public");
   if (existsSync(clientDir)) {
     app.use(express.static(clientDir));
-    app.get("*", (_req, res) => {
+    app.get("/{*splat}", (_req, res) => {
       res.sendFile(path.join(clientDir, "index.html"));
     });
   }

@@ -2,6 +2,8 @@
 
 # compiled output
 dist
+# api-server dist is pre-built and committed so Hostinger doesn't need esbuild
+!artifacts/api-server/dist/
 tmp
 out-tsc
 *.tsbuildinfo

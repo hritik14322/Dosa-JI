@@ -203,3 +203,9 @@ id = "RXqyn58m7E373r7WZyeS_"
 uri = "file://dosaji-production.tar.gz"
 type = "unspecified"
 title = "Dosa Ji — Production Package v2 (PORT fix)"
+
+[[outputs]]
+id = "IIVjBazrY_SqdPdVFqMck"
+uri = "file://dosaji-production.zip"
+type = "unspecified"
+title = "Dosa Ji — Production Package (ZIP)"

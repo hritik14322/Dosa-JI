@@ -1,35 +1,48 @@
-process.on("uncaughtException", (err) => {
-  console.error("[startup] Uncaught exception:", err.message, err.stack);
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+
+console.log("[bootstrap]", new Date().toISOString());
+console.log("[bootstrap] PORT=" + (process.env["PORT"] ?? "3000"), "NODE_ENV=" + process.env["NODE_ENV"]);
+
+process.on("uncaughtException", (err: Error) => {
+  console.error("[bootstrap] uncaughtException:", err.message, err.stack);
+});
+process.on("unhandledRejection", (reason: unknown) => {
+  console.error("[bootstrap] unhandledRejection:", reason);
+});
+
+const port = Number(process.env["PORT"] ?? "3000");
+
+type Listener = (req: IncomingMessage, res: ServerResponse) => void;
+
+// Start with a placeholder — LiteSpeed sees a server immediately
+let handler: Listener = (_req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Starting...\n");
+};
+
+const server = createServer((req, res) => handler(req, res));
+
+server.on("error", (err: Error) => {
+  console.error("[bootstrap] listen error:", err.message);
   process.exit(1);
 });
 
-process.on("unhandledRejection", (reason) => {
-  console.error("[startup] Unhandled rejection:", reason);
-  process.exit(1);
-});
+server.listen(port, "0.0.0.0", () => {
+  console.log("[bootstrap] Listening on port", port);
 
-console.log("[startup] Loading app...");
-console.log("[startup] NODE_ENV:", process.env["NODE_ENV"]);
-console.log("[startup] PORT env:", process.env["PORT"] ?? "(not set, using 3000)");
-
-import app from "./app";
-import { logger } from "./lib/logger";
-
-const rawPort = process.env["PORT"] ?? "3000";
-const port = Number(rawPort);
-
-console.log("[startup] Parsed port:", port);
-
-if (Number.isNaN(port) || port <= 0) {
-  console.error("[startup] Invalid PORT value:", rawPort);
-  process.exit(1);
-}
-
-app.listen(port, "0.0.0.0", (err?: Error) => {
-  if (err) {
-    console.error("[startup] Failed to listen:", err.message);
-    process.exit(1);
-  }
-  console.log("[startup] Server listening on port", port);
-  logger.info({ port }, "Server listening");
+  // Load the full Express app AFTER we are already listening
+  // @ts-ignore — app-bundle.mjs is built as a separate entry point
+  import("./app-bundle.mjs")
+    .then((mod: { default: Listener }) => {
+      handler = mod.default as unknown as Listener;
+      console.log("[bootstrap] Express app ready");
+    })
+    .catch((err: Error) => {
+      console.error("[bootstrap] App failed to load:", err.message, err.stack);
+      // Serve the error over HTTP so we can read it
+      handler = (_req, res) => {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("App Load Error:\n" + err.message + "\n\n" + err.stack + "\n");
+      };
+    });
 });

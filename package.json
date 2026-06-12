@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "build:hostinger": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/dosaji run build && cp -r artifacts/dosaji/dist/public/ artifacts/api-server/dist/public/",
     "typecheck:libs": "tsc --build",
@@ -11,6 +10,9 @@
   },
   "private": true,
   "devDependencies": {
+    "@electric-sql/pglite": "^0.2.0",
+    "@electric-sql/pglite-socket": "^0.2.0",
+    "pg": "^8.21.0",
     "prettier": "^3.8.3",
     "typescript": "~5.9.3"
   },

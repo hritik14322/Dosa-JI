@@ -9,6 +9,7 @@ globalThis.require = createRequire(import.meta.url);
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 
 const external = [
+  "@electric-sql/pglite",
   "*.node",
   "sharp",
   "better-sqlite3",

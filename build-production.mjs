@@ -7,20 +7,27 @@ process.env.BASE_PATH = '/';
 process.env.PORT = '3000';
 process.env.NODE_ENV = 'production';
 
+// Dynamically resolve the pnpm command using the executing package manager's path
+const npmExec = process.env.npm_execpath || 'pnpm';
+const pnpmCmd = npmExec.endsWith('.js') || npmExec.endsWith('.cjs')
+  ? `node "${npmExec}"`
+  : `"${npmExec}"`;
+
 console.log('Starting cross-platform production build...');
+console.log(`Resolved pnpm runner: ${pnpmCmd}`);
 
 try {
   console.log('Building all workspace projects...');
-  execSync('pnpm -r --if-present run build', { stdio: 'inherit' });
+  execSync(`${pnpmCmd} -r --if-present run build`, { stdio: 'inherit' });
 
   // Run database migrations and seeding
   console.log('Checking database status and running migrations...');
   try {
     console.log('Applying database migrations...');
-    execSync('pnpm --filter @workspace/db run push-programmatic', { stdio: 'inherit' });
+    execSync(`${pnpmCmd} --filter @workspace/db run push-programmatic`, { stdio: 'inherit' });
     
     console.log('Seeding database...');
-    execSync('pnpm --filter @workspace/scripts run seed', { stdio: 'inherit' });
+    execSync(`${pnpmCmd} --filter @workspace/scripts run seed`, { stdio: 'inherit' });
     console.log('Database initialized successfully!');
   } catch (dbError) {
     console.log('\n⚠️ Database migration/seeding was skipped or failed.');

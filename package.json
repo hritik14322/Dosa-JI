@@ -2,6 +2,7 @@
   "name": "workspace",
   "version": "0.0.0",
   "license": "MIT",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "build:hostinger": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/dosaji run build && cp -r artifacts/dosaji/dist/public/ artifacts/api-server/dist/public/ && cp -r artifacts/dosaji/dist/public/ ./public",

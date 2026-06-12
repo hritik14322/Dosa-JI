@@ -39,6 +39,9 @@ try {
   const srcDir = path.resolve('artifacts/dosaji/dist/public');
   const destDir1 = path.resolve('public');
   const destDir2 = path.resolve('artifacts/api-server/dist/public');
+  
+  const migrationsSrc = path.resolve('lib/db/drizzle');
+  const migrationsDest = path.resolve('artifacts/api-server/dist/drizzle');
 
   console.log('Copying built frontend to public directories...');
   if (fs.existsSync(srcDir)) {
@@ -53,6 +56,15 @@ try {
     console.log('Frontend assets copied successfully to all destinations!');
   } else {
     console.warn(`Warning: Frontend build directory not found at "${srcDir}". Make sure "@workspace/dosaji" builds successfully.`);
+  }
+
+  console.log('Copying database migrations folder to dist...');
+  if (fs.existsSync(migrationsSrc)) {
+    fs.mkdirSync(migrationsDest, { recursive: true });
+    fs.cpSync(migrationsSrc, migrationsDest, { recursive: true, force: true });
+    console.log('Database migrations copied successfully!');
+  } else {
+    console.warn(`Warning: Database migrations directory not found at "${migrationsSrc}".`);
   }
   
   console.log('Build finished successfully!');

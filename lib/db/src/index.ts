@@ -52,4 +52,34 @@ export const db = isPgConnection
   ? drizzlePg(pool, { schema })
   : drizzlePglite(new PGlite(databaseUrl || path.resolve(rootDir, ".local/db")), { schema });
 
+// Run database migrations and seeding asynchronously on server startup in production
+if (isPgConnection && process.env.NODE_ENV === "production") {
+  const migrationsFolder = path.resolve(rootDir, "artifacts/api-server/dist/drizzle");
+  console.log(`[Database] Auto-migrating database from: ${migrationsFolder}`);
+  import("drizzle-orm/node-postgres/migrator")
+    .then(({ migrate }) => migrate(db as any, { migrationsFolder }))
+    .then(async () => {
+      console.log("[Database] Auto-migration completed successfully!");
+      
+      // Auto-seeding check
+      try {
+        const { sql } = await import("drizzle-orm");
+        const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(schema.usersTable);
+        if (Number(count) === 0) {
+          console.log("[Database] No users found. Seeding default data...");
+          const { seedDatabase } = await import("./seed-helper");
+          await seedDatabase(db as any);
+          console.log("[Database] Seeding completed successfully!");
+        } else {
+          console.log("[Database] Database already has data. Skipping seed.");
+        }
+      } catch (seedErr) {
+        console.error("[Database] Auto-seeding failed:", seedErr);
+      }
+    })
+    .catch((err) => {
+      console.error("[Database] Auto-migration/seeding failed:", err);
+    });
+}
+
 export * from "./schema";

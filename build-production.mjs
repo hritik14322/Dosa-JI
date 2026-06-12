@@ -37,16 +37,20 @@ try {
   }
 
   const srcDir = path.resolve('artifacts/dosaji/dist/public');
-  const destDir = path.resolve('public');
+  const destDir1 = path.resolve('public');
+  const destDir2 = path.resolve('artifacts/api-server/dist/public');
 
-  console.log(`Copying built frontend from "${srcDir}" to "${destDir}"...`);
+  console.log('Copying built frontend to public directories...');
   if (fs.existsSync(srcDir)) {
-    // Ensure destination directory exists
-    fs.mkdirSync(destDir, { recursive: true });
+    // Copy to root public
+    fs.mkdirSync(destDir1, { recursive: true });
+    fs.cpSync(srcDir, destDir1, { recursive: true, force: true });
     
-    // Copy built assets recursively
-    fs.cpSync(srcDir, destDir, { recursive: true, force: true });
-    console.log('Frontend assets copied successfully!');
+    // Copy to api-server dist public
+    fs.mkdirSync(destDir2, { recursive: true });
+    fs.cpSync(srcDir, destDir2, { recursive: true, force: true });
+    
+    console.log('Frontend assets copied successfully to all destinations!');
   } else {
     console.warn(`Warning: Frontend build directory not found at "${srcDir}". Make sure "@workspace/dosaji" builds successfully.`);
   }

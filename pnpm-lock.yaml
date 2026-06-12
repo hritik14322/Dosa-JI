@@ -3,11 +3,6 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
-  onlyBuiltDependencies:
-    - '@swc/core'
-    - esbuild
-    - msw
-    - unrs-resolver
 
 catalogs:
   default:
@@ -638,6 +633,9 @@ importers:
       '@electric-sql/pglite-socket':
         specifier: ^0.2.0
         version: 0.2.1(@electric-sql/pglite@0.2.17)
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@electric-sql/pglite@0.2.17)(@types/pg@8.20.0)(pg@8.20.0)
@@ -651,6 +649,9 @@ importers:
         specifier: 'catalog:'
         version: 3.25.76
     devDependencies:
+      '@types/bcryptjs':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@types/node':
         specifier: 'catalog:'
         version: 25.6.2

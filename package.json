@@ -10,6 +10,12 @@
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
+  "workspaces": [
+    "artifacts/*",
+    "lib/*",
+    "lib/integrations/*",
+    "scripts"
+  ],
   "devDependencies": {
     "@electric-sql/pglite": "^0.2.0",
     "@electric-sql/pglite-socket": "^0.2.0",

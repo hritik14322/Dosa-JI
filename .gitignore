@@ -53,3 +53,5 @@ Thumbs.db
 # Environment
 .env
 
+# Built public assets
+/public/

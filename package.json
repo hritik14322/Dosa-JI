@@ -4,7 +4,7 @@
   "license": "MIT",
   "packageManager": "pnpm@9.12.0",
   "scripts": {
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "build": "node build-production.mjs",
     "build:hostinger": "BASE_PATH=/ PORT=3000 pnpm --filter @workspace/dosaji run build && cp -r artifacts/dosaji/dist/public/ artifacts/api-server/dist/public/ && cp -r artifacts/dosaji/dist/public/ ./public",
     "deploy:hostinger": "npx pnpm run build && npx pnpm run build:hostinger",
     "typecheck:libs": "tsc --build",

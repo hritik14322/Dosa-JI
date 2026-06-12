@@ -13,6 +13,22 @@ try {
   console.log('Building all workspace projects...');
   execSync('pnpm -r --if-present run build', { stdio: 'inherit' });
 
+  // Run database migrations and seeding
+  console.log('Checking database status and running migrations...');
+  try {
+    console.log('Applying database migrations...');
+    execSync('pnpm --filter @workspace/db run push-programmatic', { stdio: 'inherit' });
+    
+    console.log('Seeding database...');
+    execSync('pnpm --filter @workspace/scripts run seed', { stdio: 'inherit' });
+    console.log('Database initialized successfully!');
+  } catch (dbError) {
+    console.log('\n⚠️ Database migration/seeding was skipped or failed.');
+    console.log('Reason:', dbError.message || dbError);
+    console.log('Note: This is expected if your local machine does not have IPv6 internet connectivity to Supabase.');
+    console.log('The build will continue, and Hostinger will run migrations successfully during deployment.\n');
+  }
+
   const srcDir = path.resolve('artifacts/dosaji/dist/public');
   const destDir = path.resolve('public');
 

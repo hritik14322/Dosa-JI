@@ -18663,7 +18663,7 @@ var require_view = __commonJS({
     "use strict";
     var debug = require_src()("express:view");
     var path4 = require("node:path");
-    var fs2 = require("node:fs");
+    var fs3 = require("node:fs");
     var dirname = path4.dirname;
     var basename = path4.basename;
     var extname = path4.extname;
@@ -18743,7 +18743,7 @@ var require_view = __commonJS({
     function tryStat(path5) {
       debug('stat "%s"', path5);
       try {
-        return fs2.statSync(path5);
+        return fs3.statSync(path5);
       } catch (e) {
         return void 0;
       }
@@ -22429,7 +22429,7 @@ var require_send = __commonJS({
     var escapeHtml = require_escape_html();
     var etag = require_etag();
     var fresh = require_fresh();
-    var fs2 = require("fs");
+    var fs3 = require("fs");
     var mime = require_mime_types();
     var ms = require_ms();
     var onFinished = require_on_finished();
@@ -22711,7 +22711,7 @@ var require_send = __commonJS({
       var i = 0;
       var self2 = this;
       debug('stat "%s"', path5);
-      fs2.stat(path5, function onstat(err, stat) {
+      fs3.stat(path5, function onstat(err, stat) {
         var pathEndsWithSep = path5[path5.length - 1] === sep;
         if (err && err.code === "ENOENT" && !extname(path5) && !pathEndsWithSep) {
           return next(err);
@@ -22728,7 +22728,7 @@ var require_send = __commonJS({
         }
         var p = path5 + "." + self2._extensions[i++];
         debug('stat "%s"', p);
-        fs2.stat(p, function(err2, stat) {
+        fs3.stat(p, function(err2, stat) {
           if (err2) return next(err2);
           if (stat.isDirectory()) return next();
           self2.emit("file", p, stat);
@@ -22746,7 +22746,7 @@ var require_send = __commonJS({
         }
         var p = join(path5, self2._index[i]);
         debug('stat "%s"', p);
-        fs2.stat(p, function(err2, stat) {
+        fs3.stat(p, function(err2, stat) {
           if (err2) return next(err2);
           if (stat.isDirectory()) return next();
           self2.emit("file", p, stat);
@@ -22758,7 +22758,7 @@ var require_send = __commonJS({
     SendStream.prototype.stream = function stream(path5, options) {
       var self2 = this;
       var res = this.res;
-      var stream2 = fs2.createReadStream(path5, options);
+      var stream2 = fs3.createReadStream(path5, options);
       this.emit("stream", stream2);
       stream2.pipe(res);
       function cleanup() {
@@ -25506,15 +25506,15 @@ var require_pg_connection_string = __commonJS({
       if (config2.sslcert || config2.sslkey || config2.sslrootcert || config2.sslmode) {
         config2.ssl = {};
       }
-      const fs2 = config2.sslcert || config2.sslkey || config2.sslrootcert ? require("fs") : null;
+      const fs3 = config2.sslcert || config2.sslkey || config2.sslrootcert ? require("fs") : null;
       if (config2.sslcert) {
-        config2.ssl.cert = fs2.readFileSync(config2.sslcert).toString();
+        config2.ssl.cert = fs3.readFileSync(config2.sslcert).toString();
       }
       if (config2.sslkey) {
-        config2.ssl.key = fs2.readFileSync(config2.sslkey).toString();
+        config2.ssl.key = fs3.readFileSync(config2.sslkey).toString();
       }
       if (config2.sslrootcert) {
-        config2.ssl.ca = fs2.readFileSync(config2.sslrootcert).toString();
+        config2.ssl.ca = fs3.readFileSync(config2.sslrootcert).toString();
       }
       if (options.useLibpqCompat && config2.uselibpqcompat) {
         throw new Error("Both useLibpqCompat and uselibpqcompat are set. Please use only one of them.");
@@ -27451,15 +27451,15 @@ var require_lib4 = __commonJS({
   "../../node_modules/.pnpm/pgpass@1.0.5/node_modules/pgpass/lib/index.js"(exports2, module2) {
     "use strict";
     var path4 = require("path");
-    var fs2 = require("fs");
+    var fs3 = require("fs");
     var helper = require_helper();
     module2.exports = function(connInfo, cb) {
       var file2 = helper.getFileName();
-      fs2.stat(file2, function(err, stat) {
+      fs3.stat(file2, function(err, stat) {
         if (err || !helper.usePgPass(stat, file2)) {
           return cb(void 0);
         }
-        var st = fs2.createReadStream(file2);
+        var st = fs3.createReadStream(file2);
         helper.getPassword(connInfo, st, cb);
       });
     };
@@ -45866,7 +45866,7 @@ var require_make_middleware = __commonJS({
 // ../../node_modules/.pnpm/multer@2.1.1/node_modules/multer/storage/disk.js
 var require_disk = __commonJS({
   "../../node_modules/.pnpm/multer@2.1.1/node_modules/multer/storage/disk.js"(exports2, module2) {
-    var fs2 = require("fs");
+    var fs3 = require("fs");
     var os = require("os");
     var path4 = require("path");
     var crypto2 = require("crypto");
@@ -45881,7 +45881,7 @@ var require_disk = __commonJS({
     function DiskStorage(opts) {
       this.getFilename = opts.filename || getFilename;
       if (typeof opts.destination === "string") {
-        fs2.mkdirSync(opts.destination, { recursive: true });
+        fs3.mkdirSync(opts.destination, { recursive: true });
         this.getDestination = function($0, $1, cb) {
           cb(null, opts.destination);
         };
@@ -45896,7 +45896,7 @@ var require_disk = __commonJS({
         that.getFilename(req, file2, function(err2, filename) {
           if (err2) return cb(err2);
           var finalPath = path4.join(destination, filename);
-          var outStream = fs2.createWriteStream(finalPath);
+          var outStream = fs3.createWriteStream(finalPath);
           file2.stream.pipe(outStream);
           outStream.on("error", cb);
           outStream.on("finish", function() {
@@ -45915,7 +45915,7 @@ var require_disk = __commonJS({
       delete file2.destination;
       delete file2.filename;
       delete file2.path;
-      fs2.unlink(path5, cb);
+      fs3.unlink(path5, cb);
     };
     module2.exports = function(opts) {
       return new DiskStorage(opts);
@@ -49385,7 +49385,7 @@ module.exports = __toCommonJS(app_entry_exports);
 var import_express12 = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
 var import_path3 = __toESM(require("path"), 1);
-var import_fs2 = require("fs");
+var import_fs3 = require("fs");
 
 // src/routes/index.ts
 var import_express11 = __toESM(require_express2(), 1);
@@ -74210,6 +74210,33 @@ var restaurantSettingsTable = pgTable("restaurant_settings", {
 
 // ../../lib/db/src/index.ts
 var import_path = __toESM(require("path"), 1);
+var import_fs = __toESM(require("fs"), 1);
+var currentDir = process.cwd();
+var rootDir = process.cwd();
+while (currentDir) {
+  const envPath = import_path.default.join(currentDir, ".env");
+  if (import_fs.default.existsSync(envPath)) {
+    rootDir = currentDir;
+    const envContent = import_fs.default.readFileSync(envPath, "utf8");
+    for (const line2 of envContent.split(/\r?\n/)) {
+      const trimmed = line2.trim();
+      if (trimmed && !trimmed.startsWith("#")) {
+        const index = trimmed.indexOf("=");
+        if (index !== -1) {
+          const key = trimmed.substring(0, index).trim();
+          const val = trimmed.substring(index + 1).trim();
+          if (key && !process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      }
+    }
+    break;
+  }
+  const parentDir = import_path.default.dirname(currentDir);
+  if (parentDir === currentDir) break;
+  currentDir = parentDir;
+}
 var { Pool: Pool3 } = esm_default;
 var databaseUrl = process.env.DATABASE_URL;
 var isPgConnection = !!(databaseUrl && (databaseUrl.startsWith("postgres://") || databaseUrl.startsWith("postgresql://")));
@@ -74218,7 +74245,7 @@ var pool = isPgConnection ? new Pool3({
   connectionString: databaseUrl,
   ssl: isLocal ? false : { rejectUnauthorized: false }
 }) : null;
-var db = isPgConnection ? drizzle(pool, { schema: schema_exports }) : drizzle2(new import_pglite4.PGlite(databaseUrl || import_path.default.resolve(process.cwd(), ".local/db")), { schema: schema_exports });
+var db = isPgConnection ? drizzle(pool, { schema: schema_exports }) : drizzle2(new import_pglite4.PGlite(databaseUrl || import_path.default.resolve(rootDir, ".local/db")), { schema: schema_exports });
 
 // src/lib/auth.ts
 var import_jsonwebtoken = __toESM(require_jsonwebtoken(), 1);
@@ -74854,10 +74881,10 @@ var dashboard_default = router8;
 var import_express9 = __toESM(require_express2(), 1);
 var import_multer = __toESM(require_multer(), 1);
 var import_path2 = __toESM(require("path"), 1);
-var import_fs = __toESM(require("fs"), 1);
+var import_fs2 = __toESM(require("fs"), 1);
 var UPLOADS_DIR = import_path2.default.join(process.cwd(), "public", "uploads");
-if (!import_fs.default.existsSync(UPLOADS_DIR)) {
-  import_fs.default.mkdirSync(UPLOADS_DIR, { recursive: true });
+if (!import_fs2.default.existsSync(UPLOADS_DIR)) {
+  import_fs2.default.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 var storage = import_multer.default.diskStorage({
   destination: UPLOADS_DIR,
@@ -74975,7 +75002,7 @@ app.use("/api/uploads", import_express12.default.static(import_path3.default.joi
 app.use("/api", routes_default);
 if (process.env["NODE_ENV"] === "production") {
   const clientDir = import_path3.default.join(serverDir, "public");
-  if ((0, import_fs2.existsSync)(clientDir)) {
+  if ((0, import_fs3.existsSync)(clientDir)) {
     app.use(import_express12.default.static(clientDir));
     app.get("/{*splat}", (_req, res) => {
       res.sendFile(import_path3.default.join(clientDir, "index.html"));
